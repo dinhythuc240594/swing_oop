@@ -127,12 +127,12 @@ public class TaskManagementScreen extends JPanel {
 		searchPanel.add(searchButton);
 		searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		searchButton.addActionListener(e -> searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem()));
+		searchButton.addActionListener(e -> searchTasks(searchField.getText(), (String)searchFilter.getSelectedItem()));
 		searchField.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem());
+					searchTasks(searchField.getText(), (String)searchFilter.getSelectedItem());
 				}
 			}
 		});
@@ -551,16 +551,17 @@ public class TaskManagementScreen extends JPanel {
 	}
 	
 	//// 2025-06-16 - add function search for task management ////
-	private void searchEmployees(String searchText, String filter) {
+	private void searchTasks(String searchText, String filter) {
 		try {
 			tableModel.setRowCount(0);
-			String query = "SELECT t.id, t.title, t.description, t.assigned_to, t.priority, t.status, t.assigned_by " +
-					"FROM tasks t ";
+			String query = "SELECT t.id, t.title, t.description, t.assigned_to, t.priority, t.status, t.assigned_by, t.due_date " +
+					"FROM tasks t " +
+					"WHERE 1=1";
 			
 			if (!searchText.isEmpty()) {
 				switch (filter) {
 					case "Title":
-						query += " AND (t.title LIKE ?)";
+						query += " AND t.title LIKE ?";
 						break;
 					case "Description":
 						query += " AND t.description LIKE ?";
