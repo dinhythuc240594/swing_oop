@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -22,7 +23,6 @@ import java.util.regex.Pattern;
 import com.toedter.calendar.JDateChooser;
 import java.util.Locale;
 import java.util.ResourceBundle;
-import java.awt.Component;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
@@ -59,6 +59,18 @@ public class EmployeeDialog extends JDialog {
 	private ResourceBundle messages;
 	private static final String DEFAULT_LANGUAGE = "English";
 	private String currentLanguage = DEFAULT_LANGUAGE;
+	private JComboBox<String> departmentField;
+	private JTextComponent identityNumber;
+	private JTextComponent addressField;
+	private JComboBox<String> cityField;
+	private JComboBox<String> stateField;
+	private JComboBox<String> countryField;
+	private JTextComponent postalCodeField;
+	private JComboBox<String> maritalStatusField;
+	private JTextComponent spouseNameField;
+	private int numberOfChildrenField;
+	private JTextComponent emergencyContactNameField;
+	private JTextComponent emergencyContactPhoneField;
 	
 	public EmployeeDialog(JFrame parent, Connection conn) {
 		this(parent, conn, -1);
@@ -76,7 +88,7 @@ public class EmployeeDialog extends JDialog {
 
 		setTitle(messages.getString("employee.dialog.title"));
 		
-		setSize(600, 700);
+		setSize(600, 1200);
 		setLocationRelativeTo(parent);
 		setLayout(new BorderLayout());
 		
@@ -87,7 +99,6 @@ public class EmployeeDialog extends JDialog {
 			EmployeeDialogSub(parent, conn, employee_id, sessionManager);
 		}
 		updateOtherComponents();
-		
 	}
 		
 	public void EmployeeDialogMain(JFrame parent, Connection conn, int employee_Id, SessionManager sessionManager) {
@@ -246,6 +257,54 @@ public class EmployeeDialog extends JDialog {
 		addFormField(formPanel, messages.getString("employee.dialog.position"), positionField);
 		addFormField(formPanel, messages.getString("employee.dialog.hiredate"), hireDateField);
 		
+		// 2025-06-21 - create combobox for department field
+		departmentField = new JComboBox<>(new String[] {"Technology", "Human Resource", "Accounting"});
+		departmentField.setPreferredSize(new Dimension(200, departmentField.getPreferredSize().height));
+		
+		addFormField(formPanel, "Department", departmentField);
+		
+		addFormField(formPanel, "ID", identityNumber = new JTextField(20));
+		addFormField(formPanel, "Address", addressField = new JTextField(200));
+		addFormField(formPanel, "Postal Code", postalCodeField = new JTextField(20));
+		
+		cityField = new JComboBox<>(new String[] {"Technology", "Human Resource", "Accounting"});
+		cityField.setPreferredSize(new Dimension(200, cityField.getPreferredSize().height));
+		stateField = new JComboBox<>(new String[] {"Technology", "Human Resource", "Accounting"});
+		stateField.setPreferredSize(new Dimension(200, stateField.getPreferredSize().height));
+		countryField = new JComboBox<>(new String[] {"Technology", "Human Resource", "Accounting"});
+		countryField.setPreferredSize(new Dimension(200, countryField.getPreferredSize().height));
+		
+		addFormField(formPanel, "Country", countryField);
+		addFormField(formPanel, "City", cityField);
+		addFormField(formPanel, "State", stateField);
+		
+		
+		maritalStatusField = new JComboBox<>(new String[] {"Technology", "Human Resource", "Accounting"});
+		maritalStatusField.setPreferredSize(new Dimension(200, departmentField.getPreferredSize().height));
+		
+		addFormField(formPanel, "Marital Status", maritalStatusField);
+		addFormField(formPanel, "Spouse Name", spouseNameField = new JTextField(20));
+		
+		JTextField textNumber = new JTextField(10);
+		textNumber.setInputVerifier(new InputVerifier() {
+	        @Override
+	        public boolean verify(JComponent input) {
+	            JTextField tf = (JTextField) input;
+	            try {
+	                tf.setBackground(Color.WHITE); // Reset background if valid
+	                numberOfChildrenField = Integer.parseInt(tf.getText());
+	                return true;
+	            } catch (NumberFormatException e) {
+	                tf.setBackground(Color.RED); // Indicate error visually
+	                return false;
+	            }
+	        }
+	    });
+
+		addFormField(formPanel, "Number of children", textNumber);
+		addFormField(formPanel, "Emergency Contact Name", emergencyContactNameField = new JTextField(20));
+		addFormField(formPanel, "Emergency Contact Phone", emergencyContactPhoneField = new JTextField(20));
+		
 		if(sessionManager.isAdmin()) {
 			addFormField(formPanel, messages.getString("employee.dialog.username"), usernameField = new JTextField(20));
 			formPanel.add(usernameErrorLabel);
@@ -280,6 +339,15 @@ public class EmployeeDialog extends JDialog {
 		} else if(sessionManager.isEmployee()) {
 			emailField.setEnabled(false);
 		}
+		
+		JScrollPane scrollPanel = new JScrollPane(formPanel);
+		scrollPanel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createEmptyBorder(5, 5, 5, 5), 
+				BorderFactory.createLineBorder(Color.GRAY)));
+		
+		// add table to scroll pane
+		JPanel employeePanel = new JPanel(new BorderLayout());
+		employeePanel.add(scrollPanel, BorderLayout.CENTER);
 		
 	}
 	
@@ -403,7 +471,7 @@ public class EmployeeDialog extends JDialog {
 					userStmt = connection.prepareStatement(userQuery);
 					userStmt.setString(1, usernameField.getText());
 					userStmt.setString(2, new String(passwordField.getPassword()));
-					userStmt.setString(3, roleField.getSelectedItem().toString().toLowerCase());	
+					userStmt.setString(3, roleField.getSelectedItem().toString().toLowerCase());
 				} else {
 					userQuery = "INSERT INTO users (username, password, role) VALUES (?, ?, 'employee')";
 					userStmt = connection.prepareStatement(userQuery);
@@ -421,12 +489,46 @@ public class EmployeeDialog extends JDialog {
 					throw e;
 				}
 				
+				boolean isManager = roleField.getSelectedItem().toString().toLowerCase().equals("manager");
 				ResultSet rs = userStmt.getGeneratedKeys();
 				if(rs.next()) {
-					int userId = rs.getInt(1);
 					// insert employee
-					String employeeQuery = "INSERT INTO employees (user_id, first_name, last_name, email, phone, position, hire_date, photo, manager_id) " +
-					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					int userId = rs.getInt(1);
+					String employeeQuery;
+					if(isManager) {
+						employeeQuery = "INSERT INTO employees (user_id, first_name, last_name," +
+																" email, phone, position," +
+																" hire_date, photo," +
+																" department, identity_number, address," + 
+																" city, state, country," + 
+																" postal_code, marital_status, spouse_name," +
+																" number_of_children, emergency_contact_name, emergency_contact_phone) " +
+										"VALUES (?, ?, ?," +
+												" ?, ?, ?," +
+												" ?, ?," + 
+												" ?, ?, ?," + 
+												" ?, ?, ?," + 
+												" ?, ?, ?," +
+												" ?, ?, ?)";
+					} else {
+						employeeQuery = "INSERT INTO employees (user_id, first_name, last_name," +
+																" email, phone, position," +
+																" hire_date, photo," +
+																" department, identity_number, address," + 
+																" city, state, country," + 
+																" postal_code, marital_status, spouse_name," +
+																" number_of_children, emergency_contact_name, emergency_contact_phone," + 
+																" manager_id) " +
+										"VALUES (?, ?, ?," +
+												" ?, ?, ?," +
+												" ?, ?," + 
+												" ?, ?, ?," + 
+												" ?, ?, ?," + 
+												" ?, ?, ?," +
+												" ?, ?, ?," + 
+												" ?)";	
+					}
+					
 					PreparedStatement employeeStmt = connection.prepareStatement(employeeQuery);
 					employeeStmt.setInt(1, userId);
 					employeeStmt.setString(2, firstNameField.getText());
@@ -434,7 +536,7 @@ public class EmployeeDialog extends JDialog {
 					employeeStmt.setString(4, email);
 					employeeStmt.setString(5, phoneField.getText());
 					employeeStmt.setString(6, positionField.getSelectedItem().toString());
-					
+						
 					// 2025-05-31 - format hire date
 					String hireDateStr = "";
 					if(hireDateField.getDate() != null) {
@@ -442,10 +544,25 @@ public class EmployeeDialog extends JDialog {
 						hireDateStr = dateFormat.format(hireDateField.getDate());
 					}
 					employeeStmt.setString(7, hireDateStr);
-					
+						
 					employeeStmt.setBytes(8, avatarImage);
-					
-					employeeStmt.setInt(9, getManagerId((String) manageField.getSelectedItem()));
+
+					employeeStmt.setString(9, departmentField.getSelectedItem().toString());
+					employeeStmt.setString(10, identityNumber.getText());
+					employeeStmt.setString(11, addressField.getText());
+					employeeStmt.setString(12, cityField.getSelectedItem().toString());
+					employeeStmt.setString(13, stateField.getSelectedItem().toString());
+					employeeStmt.setString(14, countryField.getSelectedItem().toString());
+					employeeStmt.setString(15, postalCodeField.getText());
+					employeeStmt.setString(16, maritalStatusField.getSelectedItem().toString());
+					employeeStmt.setString(17, spouseNameField.getText());
+					employeeStmt.setInt(18, numberOfChildrenField);
+					employeeStmt.setString(19, emergencyContactNameField.getText());
+					employeeStmt.setString(20, emergencyContactPhoneField.getText());
+
+					if(!isManager) {
+						employeeStmt.setInt(21, getManagerId((String) manageField.getSelectedItem()));
+					}
 					
 					try {
 						employeeStmt.executeUpdate();
@@ -455,6 +572,20 @@ public class EmployeeDialog extends JDialog {
 							return;
 						}
 						throw e;
+					}
+					
+					if(isManager) {
+						// insert manager
+						String managerQuery = "INSERT INTO managers (user_id, first_name, last_name, email, phone, department, photo) " +
+						"VALUES (?, ?, ?, ?, ?, ?, ?)";
+						PreparedStatement managerStmt = connection.prepareStatement(managerQuery);
+						managerStmt.setInt(1, userId);
+						managerStmt.setString(2, firstNameField.getText());
+						managerStmt.setString(3, lastNameField.getText());
+						managerStmt.setString(4, email);
+						managerStmt.setString(5, phoneField.getText());
+						managerStmt.setString(6, departmentField.getSelectedItem().toString());
+						managerStmt.setBytes(7, avatarImage);
 					}
 					
 					connection.commit();
@@ -551,7 +682,6 @@ public class EmployeeDialog extends JDialog {
 		}
 	}
 	
-	
 	private void uploadImage() {
 		JFileChooser fileChooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif");
@@ -628,10 +758,7 @@ public class EmployeeDialog extends JDialog {
 			ResultSet rs = stmt.executeQuery();
 			
 			while (rs.next()) {
-				String name = rs.getString("first_name") + " " + rs.getString("last_name") ;
-//				if(roleField.equals("Employee") && rs.getString(employeeId)) {
-//					
-//				}
+				String name = rs.getString("first_name") + " " + rs.getString("last_name");
 				manageField.addItem(name);
 			}
 		} catch (SQLException e) {

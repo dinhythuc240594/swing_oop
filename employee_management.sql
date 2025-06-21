@@ -79,6 +79,15 @@ CREATE TABLE IF NOT EXISTS tasks (
 	FOREIGN KEY (assigned_by) REFERENCES managers(id)
 );
 
+-- Province table
+CREATE TABLE IF NOT EXISTS provinces (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    code VARCHAR(10),
+    name VARCHAR(100) NOT NULL,
+    division_type VARCHAR(50),
+    codename VARCHAR(100),
+    phone_code VARCHAR(10)
+);
 
 -- create index
 CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(id);
