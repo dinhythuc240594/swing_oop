@@ -23,6 +23,9 @@ import com.toedter.calendar.JDateChooser;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.awt.Component;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+
 
 public class EmployeeDialog extends JDialog {
 	
@@ -43,6 +46,7 @@ public class EmployeeDialog extends JDialog {
 	private JButton saveButton;
 	private JButton cancelButton;
 	private JComboBox<String> roleField;
+	private JComboBox<String> manageField;
 	private JLabel imagePreviewLabel;
 	private JButton uploadImageButton;
 	private byte[] avatarImage;
@@ -248,6 +252,31 @@ public class EmployeeDialog extends JDialog {
 			formPanel.add(Box.createVerticalStrut(5));
 			addFormField(formPanel, messages.getString("employee.dialog.password"), passwordField = new JPasswordField(20));
 			addFormField(formPanel, messages.getString("employee.dialog.level"), roleField);
+			
+			//// 2025-06-21 - add listener if role is Employee ////
+			//// user has level is manager will managed by administrator ////
+			//// and who is employee will managed by Manger or administrator ////
+			roleField.addItemListener(new ItemListener() {
+	            @Override
+	            public void itemStateChanged(ItemEvent e) {
+	                if (e.getStateChange() == ItemEvent.SELECTED) {
+	                    String selectedItem = (String) e.getItem();
+	                    if(selectedItem.equals("Employee")) {
+	                    	manageField.setEnabled(true);
+	                    }
+	                } else if (e.getStateChange() == ItemEvent.DESELECTED) {
+	                    String deselectedItem = (String) e.getItem();
+	                    System.out.println("Item deselected: " + deselectedItem);
+	                }
+	            }
+	        });
+			
+			manageField = new JComboBox<>(new String[] {});
+			manageField.setPreferredSize(new Dimension(200, roleField.getPreferredSize().height));
+			loadManager();
+			addFormField(formPanel, messages.getString("employee.dialog.level"), manageField);
+			manageField.setEnabled(false);
+			
 		} else if(sessionManager.isEmployee()) {
 			emailField.setEnabled(false);
 		}
@@ -396,8 +425,8 @@ public class EmployeeDialog extends JDialog {
 				if(rs.next()) {
 					int userId = rs.getInt(1);
 					// insert employee
-					String employeeQuery = "INSERT INTO employees (user_id, first_name, last_name, email, phone, position, hire_date, photo) " +
-					"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+					String employeeQuery = "INSERT INTO employees (user_id, first_name, last_name, email, phone, position, hire_date, photo, manager_id) " +
+					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 					PreparedStatement employeeStmt = connection.prepareStatement(employeeQuery);
 					employeeStmt.setInt(1, userId);
 					employeeStmt.setString(2, firstNameField.getText());
@@ -415,6 +444,8 @@ public class EmployeeDialog extends JDialog {
 					employeeStmt.setString(7, hireDateStr);
 					
 					employeeStmt.setBytes(8, avatarImage);
+					
+					employeeStmt.setInt(9, getManagerId((String) manageField.getSelectedItem()));
 					
 					try {
 						employeeStmt.executeUpdate();
@@ -586,6 +617,43 @@ public class EmployeeDialog extends JDialog {
 			currentLanguage = DEFAULT_LANGUAGE;
 			messages = ResourceBundle.getBundle("messages", Locale.of("en"));
 		}
+	}
+	
+	////2025-06-21 - load item manager if role is Employee ////
+	private void loadManager() {
+		try {
+			manageField.removeAllItems();
+			String query = "SELECT id, first_name, last_name FROM managers";
+			PreparedStatement stmt = connection.prepareStatement(query);
+			ResultSet rs = stmt.executeQuery();
+			
+			while (rs.next()) {
+				String name = rs.getString("first_name") + " " + rs.getString("last_name") ;
+//				if(roleField.equals("Employee") && rs.getString(employeeId)) {
+//					
+//				}
+				manageField.addItem(name);
+			}
+		} catch (SQLException e) {
+			// TODO: handle exception
+		}
+	}
+	
+	////2025-06-21 - get manager id before add into employee ////
+	private int getManagerId(String fullName) throws SQLException {
+		String[] names = fullName.split(" ");
+		String query = "SELECT id FROM managers WHERE first_name = ? AND last_name = ?";
+		PreparedStatement stmt = connection.prepareStatement(query);
+		stmt.setString(1, names[0]);
+		stmt.setString(2, names[1]);
+		ResultSet rs = stmt.executeQuery();
+		int id = -1;
+		if(rs.next()) {
+			id = rs.getInt("id");
+		}
+		rs.close();
+		stmt.close();
+		return id;
 	}
 	
 	private void updateOtherComponents() {
