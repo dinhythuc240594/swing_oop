@@ -165,6 +165,7 @@ public class LoginWindow {
 			pst.close();
 		} catch (Exception e1) {
 			errorLabel.setText("Error: " + e1.getMessage());
+			e1.printStackTrace();
 		}
 	}
 	

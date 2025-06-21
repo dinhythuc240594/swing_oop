@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (assigned_to) REFERENCES employees(id),
-	FOREIGN KEY (assigned_by) REFERENCES employees(id)
+	FOREIGN KEY (assigned_by) REFERENCES managers(id)
 );
 
 
@@ -103,31 +103,31 @@ INSERT INTO managers (user_id, first_name, last_name, email, phone, department, 
 -- Sample employee and user account
 
 -- user account
-INSERT INTO users (username, password, role) VALUES
-('anna.nguyen', 'annaNguyen', 'employee'),
-('lily.Hoang', 'lilyhoang', 'employee'),
-('bob.nguyen', 'bob654321', 'employee'),
-('binh.nguyen', 'nguyen321', 'employee'),
-('alice.johnson', '222johnson', 'employee'),
-('bob.brown', 'brownbob4444', 'employee'),
-('charlie.davis', '333davischar', 'employee'),
-('diana.evans', '555evanshat', 'employee'),
-('ethan.fowler', '08fowler321', 'employee'),
-('fiona.garcia', '677garcia', 'employee'),
-('george.harris', 'george234', 'employee'),
-('hannah.clark', 'clark134', 'employee');
-
--- employee profile
-INSERT INTO employees (user_id, first_name, last_name, email, phone, position, manager_id, hire_date, photo) VALUES
-(3, 'An', 'Nguyen', 'anna.nguyen@company.com', '0927111321', 'Designer', 1, '2024-01-01', null),
-(4, 'lily', 'Hoang', 'lily.hoang@company.com', '0982344321', 'QA', 1, '2024-01-01', null),
-(5, 'Bob', 'Nguyen', 'bob.nguyen@company.com', '0927654321', 'Developer', 1, '2024-01-01', null),
-(6, 'Binh', 'Nguyen', 'binh.nguyen@company.com', '0987654321', 'Developer', 1, '2024-01-01', null),
-(7, 'Alice', 'Johnson', 'alice.johnson@company.com', '111-222-3333', 'Designer', 1, '2024-02-15', null),
-(8, 'Bob', 'Brown', 'bob.brown@company.com', '222-333-4444', 'QA', 1, '2024-03-20', null),
-(9, 'Charlie', 'Davis', 'charlie.davis@company.com', '333-444-5555', 'Manager', 1, '2024-04-10', null),
-(10, 'Diana', 'Evans', 'diana.evans@company.com', '444-555-6666', 'Developer', 1, '2024-05-05', null),
-(11, 'Ethan', 'Fowler', 'ethan.fowler@company.com', '555-666-7777', 'Developer', 1, '2024-06-15', null),
-(12, 'Fiona', 'Garcia', 'fiona.garcia@company.com', '666-777-8888', 'Designer', 1, '2024-07-20', null),
-(13, 'George', 'Harris', 'george.harris@company.com', '777-888-9999', 'QA', 1, '2024-08-10', null),
-(14, 'Hannah', 'Clark', 'hannah.clark@company.com', '888-999-0000', 'QC', 1, '2024-09-05', null);
+--INSERT INTO users (username, password, role) VALUES
+--('anna.nguyen', 'annaNguyen', 'employee'),
+--('lily.Hoang', 'lilyhoang', 'employee'),
+--('bob.nguyen', 'bob654321', 'employee'),
+--('binh.nguyen', 'nguyen321', 'employee'),
+--('alice.johnson', '222johnson', 'employee'),
+--('bob.brown', 'brownbob4444', 'employee'),
+--('charlie.davis', '333davischar', 'employee'),
+--('diana.evans', '555evanshat', 'employee'),
+--('ethan.fowler', '08fowler321', 'employee'),
+--('fiona.garcia', '677garcia', 'employee'),
+--('george.harris', 'george234', 'employee'),
+--('hannah.clark', 'clark134', 'employee');
+--
+---- employee profile
+--INSERT INTO employees (user_id, first_name, last_name, email, phone, position, manager_id, hire_date, photo) VALUES
+--(3, 'An', 'Nguyen', 'anna.nguyen@company.com', '0927111321', 'Designer', 1, '2024-01-01', null),
+--(4, 'lily', 'Hoang', 'lily.hoang@company.com', '0982344321', 'QA', 1, '2024-01-01', null),
+--(5, 'Bob', 'Nguyen', 'bob.nguyen@company.com', '0927654321', 'Developer', 1, '2024-01-01', null),
+--(6, 'Binh', 'Nguyen', 'binh.nguyen@company.com', '0987654321', 'Developer', 1, '2024-01-01', null),
+--(7, 'Alice', 'Johnson', 'alice.johnson@company.com', '111-222-3333', 'Designer', 1, '2024-02-15', null),
+--(8, 'Bob', 'Brown', 'bob.brown@company.com', '222-333-4444', 'QA', 1, '2024-03-20', null),
+--(9, 'Charlie', 'Davis', 'charlie.davis@company.com', '333-444-5555', 'Manager', 1, '2024-04-10', null),
+--(10, 'Diana', 'Evans', 'diana.evans@company.com', '444-555-6666', 'Developer', 1, '2024-05-05', null),
+--(11, 'Ethan', 'Fowler', 'ethan.fowler@company.com', '555-666-7777', 'Developer', 1, '2024-06-15', null),
+--(12, 'Fiona', 'Garcia', 'fiona.garcia@company.com', '666-777-8888', 'Designer', 1, '2024-07-20', null),
+--(13, 'George', 'Harris', 'george.harris@company.com', '777-888-9999', 'QA', 1, '2024-08-10', null),
+--(14, 'Hannah', 'Clark', 'hannah.clark@company.com', '888-999-0000', 'QC', 1, '2024-09-05', null);
