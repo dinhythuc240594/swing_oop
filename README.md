@@ -12,4 +12,10 @@
 - Create task screen
 + List task
 + Administrator and manager has a permission create, update, delete task
-+ Employee has a permission update task and view task of it self  
++ Employee has a permission update task and view task of it self
+
+# 2025-06-18
+- Create salary screen
++ Manage has view and edit salary for employee
++ Adjustment salary such as basic, coefficient follow position and gross salary
++ Improve and add new functionally, we will update for you in the future
