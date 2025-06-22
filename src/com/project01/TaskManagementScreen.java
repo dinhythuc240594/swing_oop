@@ -116,14 +116,6 @@ public class TaskManagementScreen extends JPanel {
 		searchFilter.addItem(messages.getString("search.task.priority"));
 		searchFilter.addItem(messages.getString("search.task.status"));
 		
-//		messages.getString("search.task.all"),
-//		messages.getString("search.task.title"),
-//		messages.getString("search.task.description"),
-//		messages.getString("search.task.assigned_to"),
-//		messages.getString("search.task.create_by"),
-//		messages.getString("search.task.priority"),
-//		messages.getString("search.task.status")
-		
 		// Restore the selected index
 		if (selectedIndex >= 0 && selectedIndex < searchFilter.getItemCount()) {
 			searchFilter.setSelectedIndex(selectedIndex);
@@ -592,61 +584,27 @@ public class TaskManagementScreen extends JPanel {
 		loadEmployeeButton.setText(messages.getString("task.button.load"));
 	}
 	
-	
-//	try {
-//		
-//		tableModel.setRowCount(0);
-//		String query;
-//		PreparedStatement stmt;
-//		
-//		if(sessionManager.isAdmin() || sessionManager.isManager()) {
-//			query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " + 
-//					"m.first_name as created_first_name, m.last_name as created_last_name " +
-//					"FROM tasks t " +
-//					"JOIN employees e ON t.assigned_to = e.id " +
-//					"JOIN managers m ON t.assigned_by = m.id ";
-//			stmt =  connection.prepareStatement(query);
-//		} else {
-//			query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " + 
-//					"m.first_name as created_first_name, m.last_name as created_last_name " +
-//					"FROM tasks t " +
-//					"JOIN employees e ON t.assigned_to = e.id " +
-//					"JOIN managers m ON t.assigned_by = m.id " +
-//					"WHERE t.assigned_to = (SELECT e2.id FROM employees e2 WHERE e2.user_id = ?)";
-//			stmt =  connection.prepareStatement(query);
-//			stmt.setInt(1, sessionManager.getUserId());	
-//		}
-//		
-//		ResultSet rs = stmt.executeQuery();
-//		while(rs.next()) {
-//			Object[] row = {
-//				rs.getInt("id"),
-//				rs.getString("title"),
-//				rs.getString("description"),
-//				rs.getString("assigned_first_name") + " " + rs.getString("assigned_last_name"),
-//				rs.getString("priority"),
-//				rs.getString("status"),
-//				rs.getDate("due_date"),
-//				rs.getString("created_first_name") + " " + rs.getString("created_last_name"),
-//			};
-//			tableModel.addRow(row);
-//		}
-//		rs.close();
-//		stmt.close();
-//	} catch (Exception e) {
-//		e.printStackTrace();
-//	}
-	
 	//// 2025-06-16 - add function search for task management ////
 	private void searchTasks(String searchText, String filter) {
 		try {
 			tableModel.setRowCount(0);
-			String query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " +
-							"m.first_name as created_first_name, m.last_name as created_last_name " +
-							"FROM tasks t " +
-							"JOIN employees e ON t.assigned_to = e.id " +
-							"JOIN managers m ON t.assigned_by = m.id " +
-							"WHERE 1=1";
+			String query;
+			if(sessionManager.isAdmin()) {
+				query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " +
+						"m.first_name as created_first_name, m.last_name as created_last_name " +
+						"FROM tasks t " +
+						"JOIN employees e ON t.assigned_to = e.id " +
+						"JOIN managers m ON t.assigned_by = m.id " +
+						"WHERE 1=1";	
+			}else {
+				query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " +
+						"m.first_name as created_first_name, m.last_name as created_last_name " +
+						"FROM tasks t " +
+						"JOIN employees e ON t.assigned_to = e.id " +
+						"JOIN managers m ON t.assigned_by = m.id " +
+						"WHERE t.assigned_to = (SELECT e2.id FROM employees e2 WHERE e2.user_id = " + sessionManager.getUserId() + ")";
+			}
+			
 			
 			if (!searchText.isEmpty()) {
 				switch (filter) {
