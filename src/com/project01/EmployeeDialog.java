@@ -76,7 +76,7 @@ public class EmployeeDialog extends JDialog {
 
 		setTitle(messages.getString("employee.dialog.title"));
 		
-		setSize(600, 700);
+		setSize(600, 750);
 		setLocationRelativeTo(parent);
 		setLayout(new BorderLayout());
 		
@@ -196,7 +196,7 @@ public class EmployeeDialog extends JDialog {
 		
 		// 2025-05-31 - create datepicker for hired field
 		hireDateField = new JDateChooser();
-		hireDateField.setPreferredSize(new Dimension(200, 25));
+		hireDateField.setPreferredSize(new Dimension(200, hireDateField.getPreferredSize().height));
 		hireDateField.setDateFormatString("yyyy-MM-dd");
 		
 		// 2025-05-31 - create email format for email field
@@ -274,7 +274,7 @@ public class EmployeeDialog extends JDialog {
 			manageField = new JComboBox<>(new String[] {});
 			manageField.setPreferredSize(new Dimension(200, roleField.getPreferredSize().height));
 			loadManager();
-			addFormField(formPanel, messages.getString("employee.dialog.level"), manageField);
+			addFormField(formPanel, messages.getString("employee.dialog.managedby"), manageField);
 			manageField.setEnabled(false);
 			
 		} else if(sessionManager.isEmployee()) {

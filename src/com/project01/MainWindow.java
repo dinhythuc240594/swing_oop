@@ -463,12 +463,12 @@ public class MainWindow {
 		themeCombo.setSelectedItem("Light"); // Default theme
 		fontSizeCombo.setSelectedItem("Medium"); // Default font size
 		
-		panel.add(new JLabel("Theme:"));
+		panel.add(new JLabel(getMessage("menu.appearance.theme")));
 		panel.add(themeCombo);
-		panel.add(new JLabel("Font Size:"));
+		panel.add(new JLabel(getMessage("menu.appearance.font_size")));
 		panel.add(fontSizeCombo);
 		
-		int result = JOptionPane.showConfirmDialog(window, panel, "Appearance Settings",
+		int result = JOptionPane.showConfirmDialog(window, panel, getMessage("menu.appearance"),
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		
 		if(result == JOptionPane.OK_OPTION) {
@@ -571,7 +571,7 @@ public class MainWindow {
 		panel.add(systemNoti);
 		panel.add(updateNotif);
 		
-		int result = JOptionPane.showConfirmDialog(window, panel, getMessage("menu.notification.title"),
+		int result = JOptionPane.showConfirmDialog(window, panel, getMessage("menu.notification"),
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		
 		if(result == JOptionPane.OK_OPTION) {
