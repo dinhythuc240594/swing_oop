@@ -7,7 +7,7 @@ if %ERRORLEVEL% NEQ 0 (
     echo SQLite3 is not installed or not in PATH
     echo.
     echo Current PATH:
-    echo %PATH%
+    echo "%PATH%"
     echo.
     echo Please install SQLite3 and try again
     pause

@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.JTextComponent;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -59,6 +60,12 @@ public class EmployeeDialog extends JDialog {
 	private ResourceBundle messages;
 	private static final String DEFAULT_LANGUAGE = "English";
 	private String currentLanguage = DEFAULT_LANGUAGE;
+	private JTextField identityNumberField;
+	private JTextField salaryField;
+	private JTextField salaryCoefficientField;
+	private JTextField grosssalary;
+	private JTextField experienField;
+	private JTextComponent experienceField;
 	
 	public EmployeeDialog(JFrame parent, Connection conn) {
 		this(parent, conn, -1);
@@ -81,16 +88,18 @@ public class EmployeeDialog extends JDialog {
 		setLayout(new BorderLayout());
 		
 		SessionManager sessionManager = SessionManager.getInstance();
-		if(sessionManager.isAdmin() || sessionManager.isManager()) {
-			EmployeeDialogMain(parent, conn, employee_id, sessionManager);
+		if(sessionManager.isAdmin()) {
+			EmployeeDialogAdmin(parent, conn, employee_id, sessionManager);
+		} else if(sessionManager.isManager()) {
+			EmployeeDialogSalary(parent, conn, employee_id, sessionManager);
 		} else {
-			EmployeeDialogSub(parent, conn, employee_id, sessionManager);
+			EmployeeDialogUser(parent, conn, employee_id, sessionManager);
 		}
 		updateOtherComponents();
 		
 	}
 		
-	public void EmployeeDialogMain(JFrame parent, Connection conn, int employee_Id, SessionManager sessionManager) {
+	public void EmployeeDialogAdmin(JFrame parent, Connection conn, int employee_Id, SessionManager sessionManager) {
 	
 		// create form panel
 		JPanel formPanel = new JPanel();
@@ -132,7 +141,35 @@ public class EmployeeDialog extends JDialog {
 		
 	}
 	
-	public void EmployeeDialogSub(JFrame parent, Connection conn, int employee_Id, SessionManager sessionManager) {
+	public void EmployeeDialogUser(JFrame parent, Connection conn, int employee_Id, SessionManager sessionManager) {
+		
+		// create form panel
+		JPanel formPanel = new JPanel();
+		formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
+		formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		
+		createForm(formPanel, sessionManager);
+		
+		// add button panel
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		
+		saveButton = new JButton("Save");
+		saveButton.addActionListener(e -> saveEmployee());
+		
+		cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(e -> dispose());
+		
+		buttonPanel.add(saveButton);
+		buttonPanel.add(cancelButton);
+		
+		add(formPanel, BorderLayout.CENTER);
+		add(buttonPanel, BorderLayout.SOUTH);
+		loadDetailEmployeeData();
+		positionField.setEnabled(false);
+		hireDateField.setEnabled(false);
+	}
+	
+	public void EmployeeDialogSalary(JFrame parent, Connection conn, int employee_Id, SessionManager sessionManager) {
 		
 		// create form panel
 		JPanel formPanel = new JPanel();
@@ -245,7 +282,12 @@ public class EmployeeDialog extends JDialog {
 		addFormField(formPanel, messages.getString("employee.dialog.phone"), phoneField = new JTextField(20));
 		addFormField(formPanel, messages.getString("employee.dialog.position"), positionField);
 		addFormField(formPanel, messages.getString("employee.dialog.hiredate"), hireDateField);
-		
+		experienceField = new JTextField(20);
+		addFormField(formPanel, messages.getString("salary.column.experience"), experienceField);
+		addFormField(formPanel, messages.getString("salary.column.identitynumber"), identityNumberField = new JTextField(20));
+		ThongTinLuong luong = SalaryCalculator.tinhLuong(this.employeeId, this.connection);
+		experienceField.setText(luong.tenKinhNghiem);
+		experienceField.setEnabled(false);
 		if(sessionManager.isAdmin()) {
 			addFormField(formPanel, messages.getString("employee.dialog.username"), usernameField = new JTextField(20));
 			formPanel.add(usernameErrorLabel);
@@ -279,6 +321,38 @@ public class EmployeeDialog extends JDialog {
 			
 		} else if(sessionManager.isEmployee()) {
 			emailField.setEnabled(false);
+		} else {
+			
+	        salaryField = new JTextField(20);	        
+	        salaryField.setText(String.valueOf(luong.luongCoBan));
+	        addFormField(formPanel, messages.getString("salary.column.salary"), salaryField);
+			addFormField(formPanel, messages.getString("salary.column.salarycoefficient"), salaryCoefficientField = new JTextField(20));
+			Double salary = SalaryCalculator.layHeSoViTri(positionField.getSelectedItem().toString());
+			salaryCoefficientField.setText(String.valueOf(salary));
+			salaryCoefficientField.setEnabled(false);
+
+			grosssalary = new JTextField(20);
+			addFormField(formPanel, messages.getString("salary.column.grosssalary"), grosssalary);
+			grosssalary.setText(String.valueOf(luong.luongCuoiCung));
+			grosssalary.setEnabled(false);
+			
+	        salaryField.setInputVerifier(new InputVerifier() {
+				@Override
+				public boolean verify(JComponent input) {
+					String salary = salaryField.getText().trim();
+					String coefficient = salaryCoefficientField.getText().trim();
+	                try {
+	                    Double number_salary = Double.parseDouble(salary);
+	                    Double number_coefficient = Double.parseDouble(coefficient);
+	                    Double salary_amount = number_salary*number_coefficient;
+	                    grosssalary.setText(String.valueOf(salary_amount));
+	                    return true;
+	                } catch (NumberFormatException ex) {
+	                	emailErrorLabel.setText("Result1: Invalid input!");
+	                    return false;
+	                }
+				}
+			});
 		}
 		
 	}
@@ -332,7 +406,7 @@ public class EmployeeDialog extends JDialog {
 				phoneField.setText(rs.getString("phone"));
 				
 				positionField.setSelectedItem(rs.getString("position"));
-
+				identityNumberField.setText(rs.getString("identity_number"));
 				String hireDateStr = rs.getString("hire_date");
 				if(hireDateStr != null && !hireDateStr.isEmpty()) {
 					try {
@@ -528,6 +602,34 @@ public class EmployeeDialog extends JDialog {
 						stmt.executeUpdate();
 						stmt.close();
 					}
+				} else if(sessionManager.isManager()) {
+					// update employee
+					query = "UPDATE employees SET first_name = ?, last_name = ?, email = ?," + 
+													" phone = ?, position = ?, hire_date = ?," + 
+													" photo = ?, identity_number = ?," +
+													" salary = ?, salary_coefficient = ?" +
+													" WHERE id = ?";
+					pstmt = connection.prepareStatement(query);
+
+					pstmt.setString(1, firstNameField.getText());
+					pstmt.setString(2, lastNameField.getText());
+					pstmt.setString(3, email);
+					pstmt.setString(4, phoneField.getText());
+					pstmt.setString(5, positionField.getSelectedItem().toString());
+					//// 2025-05-31 - format hire date ////
+					String hireDateStr = "";
+					if(hireDateField.getDate() != null) {
+						SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+						hireDateStr = dateFormat.format(hireDateField.getDate());
+					}
+					pstmt.setString(6, hireDateStr);
+					pstmt.setBytes(7, avatarImage);
+					pstmt.setString(8, identityNumberField.getText());
+					pstmt.setDouble(9, Double.parseDouble(salaryField.getText().trim()));
+					pstmt.setDouble(10, Double.parseDouble(salaryCoefficientField.getText().trim()));
+					pstmt.setInt(11, employeeId);
+					pstmt.executeUpdate();
+					pstmt.close();
 				}
 				employeeUpdated = true;
 			}
@@ -550,7 +652,6 @@ public class EmployeeDialog extends JDialog {
 			}
 		}
 	}
-	
 	
 	private void uploadImage() {
 		JFileChooser fileChooser = new JFileChooser();
@@ -581,7 +682,6 @@ public class EmployeeDialog extends JDialog {
 			}
 		}
 	}
-	
 	
 	public boolean isEmployeeAdded() {
 		return employeeAdded;
