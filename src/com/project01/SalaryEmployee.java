@@ -1,11 +1,11 @@
 package com.project01;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+//import java.sql.Connection;
+//import java.sql.PreparedStatement;
+//import java.sql.ResultSet;
+//import java.sql.SQLException;
+//import java.util.HashMap;
+//import java.util.Map;
 
 //public abstract class SalaryEmployee {
 //    protected static final Map<String, Double> POSITION_COEFFICIENTS = new HashMap<>();

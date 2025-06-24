@@ -1,8 +1,8 @@
 package com.project01;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+//import java.sql.Connection;
+//import java.sql.PreparedStatement;
+//import java.sql.SQLException;
 
 //public class ManagerEmployee extends SalaryEmployee {
 //    private static final double MANAGER_BONUS = 500.0; // Additional bonus for managers

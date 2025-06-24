@@ -1,10 +1,10 @@
 package com.project01;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
+
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dimension;
+
 import java.awt.FlowLayout;
 import java.awt.Image;
 import java.awt.event.KeyAdapter;
@@ -16,40 +16,36 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
+
 import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Vector;
-import java.util.Map;
+
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
+
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JComponent;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
+
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
+
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-
-import com.toedter.calendar.JDateChooser;
 
 public class CaculatorSalaryScreen extends JPanel {
 	private ResourceBundle messages;
 	private static final String DEFAULT_LANGUAGE = "English";
 	private String currentLanguage = DEFAULT_LANGUAGE;
-	private JLabel titleTask, descriptionTask, assignedByTask, assignedToTask, priorityTask, statusTask, dueDateTask;
 	private Connection connection;
 	private SessionManager sessionManager;
 	private DefaultTableModel tableModel;
@@ -57,11 +53,13 @@ public class CaculatorSalaryScreen extends JPanel {
 	private static final String DEFAULT_AVATAR_PATH = "img/avatar.png";
 	private HandlerImage hImage = new HandlerImage();
 	private JButton viewDetailsButton;
+	private JButton refreshButton;
 	private JComboBox<String> searchFilter;
 	private JButton searchButton;
 	private JTextField searchField;
 	private JLabel searchLabel;
 	private JLabel filterLabel;
+	private Locale localeInfo;
 	
 	
 	public CaculatorSalaryScreen(Connection connection) {
@@ -80,6 +78,7 @@ public class CaculatorSalaryScreen extends JPanel {
 	
 	public void setLanguage(Locale locale) {
 		this.messages = ResourceBundle.getBundle("messages", locale);
+		this.localeInfo = locale;
 		updateUIText();
 	}
 
@@ -111,6 +110,8 @@ public class CaculatorSalaryScreen extends JPanel {
 		searchLabel.setText(messages.getString("search.label"));
 		filterLabel.setText(messages.getString("search.filter"));
 		searchButton.setText(messages.getString("search.button"));
+		viewDetailsButton.setText(messages.getString("salary.button.view_detail"));
+		refreshButton.setText(messages.getString("salary.button.refresh"));
 	}
 	
 	private void initNoPermissionComponents() {
@@ -248,11 +249,11 @@ public class CaculatorSalaryScreen extends JPanel {
 	private JPanel createControlPanel() {
 		JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		
-		viewDetailsButton = new JButton("View Salary Details");
+		viewDetailsButton = new JButton(messages.getString("salary.button.view_detail"));
 		viewDetailsButton.setEnabled(false); // Disabled until a row is selected
 		viewDetailsButton.addActionListener(e -> viewSalaryDetails());
 		
-		JButton refreshButton = new JButton("Refresh");
+		refreshButton = new JButton(messages.getString("salary.button.refresh"));
 		refreshButton.addActionListener(e -> loadSalaryEmployees());
 		
 		controlPanel.add(viewDetailsButton);
@@ -283,7 +284,7 @@ public class CaculatorSalaryScreen extends JPanel {
 				
 				// Sử dụng class ThongTinLuong riêng
 				ThongTinLuong luong = SalaryCalculator.tinhLuong(maNhanVien, connection);
-				
+				luong.setLanguage(localeInfo);
 				javax.swing.JOptionPane.showMessageDialog(
 					this,
 					luong.xemChiTiet(),
@@ -481,10 +482,12 @@ public class CaculatorSalaryScreen extends JPanel {
 				currentLanguage = rs.getString("language");
 				Locale locale = currentLanguage.equals("Vietnamese") ? Locale.of("vi") : Locale.of("en");
 				messages = ResourceBundle.getBundle("messages", locale);
+				this.localeInfo = locale;
 			} else {
 				// Default to English if no language preference is set
 				currentLanguage = DEFAULT_LANGUAGE;
 				messages = ResourceBundle.getBundle("messages", Locale.of("en"));
+				this.localeInfo = Locale.of("en");
 			}
 			
 			rs.close();
@@ -494,6 +497,7 @@ public class CaculatorSalaryScreen extends JPanel {
 			// Default to English if there's an error
 			currentLanguage = DEFAULT_LANGUAGE;
 			messages = ResourceBundle.getBundle("messages", Locale.of("en"));
+			this.localeInfo = Locale.of("en");
 		}
 	}
 	

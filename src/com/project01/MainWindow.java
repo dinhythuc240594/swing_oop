@@ -70,7 +70,7 @@ public class MainWindow {
 		window = new JFrame();
 		window.setTitle(getMessage("app.title") + " - " + getMessage("logged.in.as") + ": " + sessionManager.getUsername());
 		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		window.setSize(1000, 600);
+		window.setSize(1000, 750);
 		window.setLocationRelativeTo(null);
 		
 		createMenuBar();

@@ -1,5 +1,10 @@
 package com.project01;
 
+
+import java.util.Locale;
+
+import java.util.ResourceBundle;
+
 public class ThongTinLuong {
     // Thông tin cơ bản
     public int maNhanVien;
@@ -19,43 +24,49 @@ public class ThongTinLuong {
     // Kết quả cuối cùng
     public double luongCuoiCung;
     
-//Hàm hiển thị chi tiết lương
+	private ResourceBundle messages;
+	private static final String DEFAULT_LANGUAGE = "English";
+	private String currentLanguage = DEFAULT_LANGUAGE;
+    
+	public void setLanguage(Locale locale) {
+		this.messages = ResourceBundle.getBundle("messages", locale);
+	}
+	
+	//Hàm hiển thị chi tiết lương
     public String xemChiTiet() {
         String chiTiet = "";
-        chiTiet += "=== CHI TIẾT LƯƠNG ===\n";
-        chiTiet += "Nhân viên: " + hoTen + "\n";
-        chiTiet += "Vị trí: " + viTri + "\n";
-       // chiTiet += "Cấp bậc: " + capBac.toUpperCase() + "\n";
-        chiTiet += "Lương cơ bản: " + String.format("%.0f", luongCoBan) + "\n";
-        chiTiet += "Hệ số vị trí: " + String.format("%.1f", heSoViTri) + "\n";
+        chiTiet += "=== " + messages.getString("salary.title") +"===\n";
+        chiTiet += messages.getString("salary.employee") + ": " + hoTen + "\n";
+        chiTiet += messages.getString("salary.position") + ": " + viTri + "\n";
 
-
-
+        chiTiet += messages.getString("salary.basic") + ": " + String.format("%.0f", luongCoBan) + "\n";
+        chiTiet += messages.getString("salary.coefficient") + ": " + String.format("%.1f", heSoViTri) + "\n";
 
         if (capBac.equals("manager")) {  //level
-            chiTiet += "Cấp bậc: " + capBac.toUpperCase() + "\n";
-            chiTiet += "Hệ số cấp bậc manager: " + String.format("%.1f", heSoCapBac) + "\n";
+            chiTiet += messages.getString("salary.level") + ": " + capBac.toUpperCase() + "\n";
+            chiTiet += messages.getString("salary.manage.level") + ": " + String.format("%.1f", heSoCapBac) + "\n";
         }else if (viTri.equals("Manager")) {
-            chiTiet += "Kinh nghiệm : " + soNamKinhNghiem + " năm \n";
+            chiTiet += messages.getString("salary.experience") + ": " + soNamKinhNghiem + " " + messages.getString("salary.year") + "\n";
         }
         else {
-            chiTiet += "Kinh nghiệm: " + soNamKinhNghiem + " năm (" + tenKinhNghiem +
+            chiTiet += messages.getString("salary.experience") + ": " + soNamKinhNghiem + " " + messages.getString("salary.year") + " (" + tenKinhNghiem +
                       " - x" + String.format("%.1f", heSoKinhNghiem) + ")\n";
-            chiTiet += "Cấp bậc: " + capBac.toUpperCase() + "\n";
-            chiTiet += "Hệ số cấp bậc employee: " + String.format("%.1f", heSoCapBac) + "\n";
+            chiTiet += messages.getString("salary.level") + ": " + capBac.toUpperCase() + "\n";
+            chiTiet += messages.getString("salary.coefficient.employee") + ": " + String.format("%.1f", heSoCapBac) + "\n";
         }
 
         // Hiển thị thưởng nếu position là Manager
         if (thuongThem > 0) {
-            chiTiet += "Thưởng position Manager: " + String.format("%.0f", thuongThem) + "\n";
+            chiTiet += messages.getString("salary.manage.benefit") + ": " + String.format("%.0f", thuongThem) + "\n";
         }
 
-        chiTiet += "TỔNG LƯƠNG: " + String.format("%.0f", luongCuoiCung) + "\n";
+        chiTiet += messages.getString("salary.sum.salary") + ": " + String.format("%.0f", luongCuoiCung) + "\n";
         return chiTiet;
     }
     
-
     public String xemNganGon() {
         return hoTen + " (" + viTri + "): " + String.format("%.0f", luongCuoiCung);
     }
+	
+    
 } 

@@ -1,6 +1,6 @@
 package com.project01;
 
-import java.sql.Connection;
+//import java.sql.Connection;
 
 //public class RegularEmployee extends SalaryEmployee {
 //
