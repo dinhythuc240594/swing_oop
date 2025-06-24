@@ -98,7 +98,6 @@ public class TaskManagementScreen extends JPanel {
 		statusTask.setText(messages.getString("task.form.status"));
 		dueDateTask.setText(messages.getString("task.form.due_date"));
 		
-		
 		updateSearchFilter();
 	}
 	
@@ -589,7 +588,7 @@ public class TaskManagementScreen extends JPanel {
 		try {
 			tableModel.setRowCount(0);
 			String query;
-			if(sessionManager.isAdmin()) {
+			if(sessionManager.isAdmin() || sessionManager.isManager()) {
 				query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " +
 						"m.first_name as created_first_name, m.last_name as created_last_name " +
 						"FROM tasks t " +

@@ -320,6 +320,10 @@ public class EmployeeDialog extends JDialog {
 			manageField.setEnabled(false);
 			
 		} else if(sessionManager.isEmployee()) {
+			grosssalary = new JTextField(20);
+			addFormField(formPanel, messages.getString("salary.column.grosssalary"), grosssalary);
+			grosssalary.setText(String.valueOf(luong.luongCuoiCung));
+			grosssalary.setEnabled(false);
 			emailField.setEnabled(false);
 		} else {
 			
@@ -383,9 +387,10 @@ public class EmployeeDialog extends JDialog {
 			PreparedStatement prstmt;
 			SessionManager sessionManager = SessionManager.getInstance();
 			if(sessionManager.isAdmin() || sessionManager.isManager()) {
-				query = "SELECT e.*, u.username, u.password, u.role " +
+				query = "SELECT e.*, u.username, u.password, u.role, m.first_name as m_first_name, m.last_name as m_last_name " +
 						"FROM employees e " +
 						"JOIN users u ON e.user_id = u.id " +
+						"JOIN managers m ON e.manager_id = m.id " +
 						"WHERE e.id = ?";				
 			} else {
 				query = "SELECT e.*" +
@@ -425,6 +430,9 @@ public class EmployeeDialog extends JDialog {
 					passwordField.setText(rs.getString("password"));
 					String upperRole = rs.getString("role").substring(0, 1).toUpperCase() + rs.getString("role").substring(1);
 					roleField.setSelectedItem(upperRole);
+					
+					String manager = rs.getString("m_first_name") + " " + rs.getString("m_last_name");
+					manageField.setSelectedItem(manager);
 				}
 				
 				//// 2025-05-29 - load avatar if exists else set default avatar icon ////
@@ -519,7 +527,7 @@ public class EmployeeDialog extends JDialog {
 					
 					employeeStmt.setBytes(8, avatarImage);
 					
-					employeeStmt.setInt(9, getManagerId((String) manageField.getSelectedItem()));
+					employeeStmt.setInt(9, getManagerId((String) manageField.getSelectedItem().toString()));
 					
 					try {
 						employeeStmt.executeUpdate();
@@ -546,7 +554,7 @@ public class EmployeeDialog extends JDialog {
 	
 				if(sessionManager.isEmployee()) {
 					// update employee
-					query = "UPDATE employees SET first_name = ?, last_name = ?, phone = ?, position = ?, hire_date = ?, photo = ? " +
+					query = "UPDATE employees SET first_name = ?, last_name = ?, phone = ?, position = ?, hire_date = ?, photo = ?, identity_number = ? " +
 									"WHERE id = ?";
 					pstmt = connection.prepareStatement(query);
 
@@ -563,13 +571,14 @@ public class EmployeeDialog extends JDialog {
 					}
 					pstmt.setString(5, hireDateStr);
 					pstmt.setBytes(6, avatarImage);
-					pstmt.setInt(7, employeeId);
+					pstmt.setString(7, identityNumberField.getText());
+					pstmt.setInt(8, employeeId);
 					pstmt.executeUpdate();
 					pstmt.close();
 				} else if(sessionManager.isAdmin()) {
 					
 					// update employee
-					query = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, phone = ?, position = ?, hire_date = ?, photo = ? " +
+					query = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, phone = ?, position = ?, hire_date = ?, photo = ?, manager_id = ? " +
 									"WHERE id = ?";
 					pstmt = connection.prepareStatement(query);
 
@@ -587,7 +596,8 @@ public class EmployeeDialog extends JDialog {
 					}
 					pstmt.setString(6, hireDateStr);
 					pstmt.setBytes(7, avatarImage);
-					pstmt.setInt(8, employeeId);
+					pstmt.setInt(8, getManagerId((String) manageField.getSelectedItem().toString()));
+					pstmt.setInt(9, employeeId);
 					pstmt.executeUpdate();
 					pstmt.close();
 					
@@ -641,7 +651,8 @@ public class EmployeeDialog extends JDialog {
 			} catch (SQLException ex) {
 				ex.printStackTrace();
 			}
-			emailErrorLabel.setText("Error saving employee: " + e.getMessage());
+//			emailErrorLabel.setText("Error saving employee: " + e.getMessage());
+			JOptionPane.showMessageDialog(this, "Error saving employee: " + e.getMessage());
 		} 
 		finally {
 			try {
@@ -751,6 +762,7 @@ public class EmployeeDialog extends JDialog {
 		if(rs.next()) {
 			id = rs.getInt("id");
 		}
+		System.out.println(id);
 		rs.close();
 		stmt.close();
 		return id;

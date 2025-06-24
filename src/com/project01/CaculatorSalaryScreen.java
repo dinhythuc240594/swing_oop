@@ -1,11 +1,14 @@
 package com.project01;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Image;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
@@ -36,6 +39,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
@@ -53,7 +57,13 @@ public class CaculatorSalaryScreen extends JPanel {
 	private static final String DEFAULT_AVATAR_PATH = "img/avatar.png";
 	private HandlerImage hImage = new HandlerImage();
 	private JButton viewDetailsButton;
-
+	private JComboBox<String> searchFilter;
+	private JButton searchButton;
+	private JTextField searchField;
+	private JLabel searchLabel;
+	private JLabel filterLabel;
+	
+	
 	public CaculatorSalaryScreen(Connection connection) {
 		this.connection = connection;
 		this.sessionManager = SessionManager.getInstance();
@@ -75,25 +85,34 @@ public class CaculatorSalaryScreen extends JPanel {
 
 	private void updateUIText() {
 
-		// Update table headers
-		String[] columns = {
-				messages.getString("salary.column.id"),
-				messages.getString("salary.column.photo"),
-				messages.getString("salary.column.name"),
-				messages.getString("salary.column.position"),
-				messages.getString("salary.column.email"),
-				messages.getString("salary.column.phone"),
-				messages.getString("salary.column.identitynumber"),
-				messages.getString("salary.column.salary"),
-				messages.getString("salary.column.salarycoefficient"),
-				messages.getString("salary.column.grosssalary")
-		};
-		tableModel.setColumnIdentifiers(columns);
+		updateTableHeaders();
 		
-		// Force table to update
-		salaryTable.getTableHeader().repaint();
+		updateSearchFilter();
 	}
 
+	private void updateSearchFilter() {
+		// Store the currently selected index
+		int selectedIndex = searchFilter.getSelectedIndex();
+		
+		// Update the items
+		searchFilter.removeAllItems();
+		searchFilter.addItem(messages.getString("search.all"));
+		searchFilter.addItem(messages.getString("search.name"));
+		searchFilter.addItem(messages.getString("search.email"));
+		searchFilter.addItem(messages.getString("search.position"));
+//		searchFilter.addItem(messages.getString("search.department"));
+		
+		// Restore the selected index
+		if (selectedIndex >= 0 && selectedIndex < searchFilter.getItemCount()) {
+			searchFilter.setSelectedIndex(selectedIndex);
+		}
+		
+		// Update other search components
+		searchLabel.setText(messages.getString("search.label"));
+		filterLabel.setText(messages.getString("search.filter"));
+		searchButton.setText(messages.getString("search.button"));
+	}
+	
 	private void initNoPermissionComponents() {
 		setLayout(new BorderLayout());
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -114,19 +133,19 @@ public class CaculatorSalaryScreen extends JPanel {
 		loadUserLanguage();
 
 		String[] columns = {
-			messages.getString("salary.column.id"),
-			messages.getString("salary.column.photo"),
-			messages.getString("salary.column.name"),
-			messages.getString("salary.column.position"),
-			"Level",
-			messages.getString("salary.column.email"),
-			messages.getString("salary.column.phone"),
-			messages.getString("salary.column.identitynumber"),
-			"Hire Date",
-			messages.getString("salary.column.salary"),
-			messages.getString("salary.column.salarycoefficient"),
-			"Experience Level",
-			messages.getString("salary.column.grosssalary"),
+				messages.getString("salary.column.id"),
+				messages.getString("salary.column.photo"),
+				messages.getString("salary.column.name"),
+				messages.getString("salary.column.position"),
+				messages.getString("salary.column.level"),
+				messages.getString("salary.column.email"),
+				messages.getString("salary.column.phone"),
+				messages.getString("salary.column.identitynumber"),
+				messages.getString("salary.column.hire_date"),
+				messages.getString("salary.column.salary"),
+				messages.getString("salary.column.salarycoefficient"),
+				messages.getString("salary.column.experience_level"),
+				messages.getString("salary.column.grosssalary"),
 		};
 		
 		//// 2025-05-31 - customize table model for employees table view ////
@@ -139,7 +158,7 @@ public class CaculatorSalaryScreen extends JPanel {
 			
 			@Override
 			public Class<?> getColumnClass(int column){
-				if(column == 0) {
+				if(column == 1) {
 					return ImageIcon.class;
 				}	
 				return String.class;
@@ -150,7 +169,7 @@ public class CaculatorSalaryScreen extends JPanel {
 		salaryTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		salaryTable.setRowHeight(50);
 		
-		salaryTable.getColumnModel().getColumn(0).setPreferredWidth(50); //ID
+		salaryTable.getColumnModel().getColumn(0).setPreferredWidth(20); //ID
 		salaryTable.getColumnModel().getColumn(1).setPreferredWidth(50); //PHOTO
 		salaryTable.getColumnModel().getColumn(2).setPreferredWidth(150); // NAME
 		salaryTable.getColumnModel().getColumn(3).setPreferredWidth(100); // POSITION
@@ -160,62 +179,45 @@ public class CaculatorSalaryScreen extends JPanel {
 		salaryTable.getColumnModel().getColumn(7).setPreferredWidth(100); // HIRE DATE
 		salaryTable.getColumnModel().getColumn(8).setPreferredWidth(80); // SALARY
 		salaryTable.getColumnModel().getColumn(9).setPreferredWidth(80); // SALARY COEFFICIENT
-		salaryTable.getColumnModel().getColumn(10).setPreferredWidth(100); // GROSS SALARY
-				
-		//// 2025-05-29 - customize center the photo column ////
-		salaryTable.getColumnModel().getColumn(1).setPreferredWidth(50);
-		salaryTable.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
-			@Override
-			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-				JLabel label = new JLabel();
-				label.setHorizontalAlignment(JLabel.CENTER);
-				label.setOpaque(true);
-				if(value instanceof ImageIcon) {
-					ImageIcon icon = (ImageIcon) value;
-					Image img = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-					label.setIcon(new ImageIcon(img));
-				}
-				
-				if(isSelected) {
-					label.setBackground(table.getSelectionBackground());
-					label.setForeground(table.getSelectionForeground());
-				}else {
-					label.setBackground(table.getBackground());
-					label.setForeground(table.getForeground());
-				}
-				
-				return label;
-			}
-		});
-	
-		salaryTable.getColumnModel().getColumn(0).setWidth(0);
-		salaryTable.getColumnModel().getColumn(0).setMinWidth(0);
-		salaryTable.getColumnModel().getColumn(0).setMaxWidth(0);
+		salaryTable.getColumnModel().getColumn(10).setPreferredWidth(100); // GROSS SALARY		
 		
-		//// 2025-05-30 - add mouse listener for row selection and delete button ////
-		salaryTable.addMouseListener(new MouseAdapter() {
+		// Add search panel
+		JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		searchField = new JTextField(20);
+		searchFilter = new JComboBox<>(new String[]{
+				messages.getString("search.all"),
+				messages.getString("search.name"),
+				messages.getString("search.email"),
+				messages.getString("search.position"),
+//				messages.getString("search.department")
+		});
+		searchButton = new JButton(messages.getString("search.button"));
+		
+		searchLabel = new JLabel(messages.getString("search.label"));
+		filterLabel = new JLabel(messages.getString("search.filter"));
+		
+		searchPanel.add(searchLabel);
+		searchPanel.add(searchField);
+		searchPanel.add(filterLabel);
+		searchPanel.add(searchFilter);
+		searchPanel.add(searchButton);
+		searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		searchButton.addActionListener(e -> searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem()));
+		searchField.addKeyListener(new KeyAdapter() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
-				int column = salaryTable.getColumnModel().getColumnIndexAtX(e.getX());
-				int row = e.getY() / salaryTable.getRowHeight();
-				
-				if (row < salaryTable.getRowCount() && row >= 0 && column < salaryTable.getColumnCount() && column >= 0) {
-					if(e.getClickCount() == 2) {
-						if(row != -1) {
-							openEmployeeDetails(row);
-						}
-					}
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem());
 				}
-			
-			}
-			
-			@Override
-			public void mouseExited(MouseEvent e) {
-				salaryTable.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 			}
 		});
+		
+		JPanel topPanel = new JPanel(new BorderLayout());
+		topPanel.add(searchPanel, BorderLayout.CENTER);
 		
 		JScrollPane tableScrollPanel = new JScrollPane(salaryTable);
+		add(topPanel, BorderLayout.NORTH);
 		add(tableScrollPanel);
 		
 		// Create control panel with View Details button
@@ -229,6 +231,7 @@ public class CaculatorSalaryScreen extends JPanel {
 				viewDetailsButton.setEnabled(selectedRow >= 0);
 			}
 		});
+		updateUIText();
 	}
 	
 	private void openEmployeeDetails(int row) {
@@ -364,6 +367,109 @@ public class CaculatorSalaryScreen extends JPanel {
 		}
 	}
 	
+	private void searchEmployees(String searchText, String filter) {
+		try {
+			
+			tableModel.setRowCount(0);
+			String query = "SELECT e.id, e.photo, e.first_name, e.last_name, e.email, e.phone, e.position, e.hire_date," +
+							" e.identity_number, e.photo, e.salary, u.role, e.hire_date " +
+							"FROM employees e " +
+							"JOIN users u ON e.user_id = u.id WHERE 1=1";
+			
+			if (!searchText.isEmpty()) {
+				switch (filter) {
+					case "Name":
+						query += " AND (e.first_name LIKE ? OR e.last_name LIKE ?)";
+						break;
+					case "Email":
+						query += " AND e.email LIKE ?";
+						break;
+					case "Position":
+						query += " AND e.position LIKE ?";
+						break;
+					case "Department":
+						query += " AND e.department LIKE ?";
+						break;
+					default:
+						query += " AND (e.first_name LIKE ? OR e.last_name LIKE ? OR e.email LIKE ? OR e.position LIKE ? OR e.department LIKE ?)";
+				}
+			}
+			
+			PreparedStatement stmt = connection.prepareStatement(query);
+			
+			if (!searchText.isEmpty()) {
+				String searchPattern = "%" + searchText + "%";
+				switch (filter) {
+					case "Name":
+						stmt.setString(1, searchPattern);
+						stmt.setString(2, searchPattern);
+						break;
+					case "Email":
+						stmt.setString(1, searchPattern);
+						break;
+					case "Position":
+						stmt.setString(1, searchPattern);
+						break;
+					case "Department":
+						stmt.setString(1, searchPattern);
+						break;
+					default:
+						stmt.setString(1, searchPattern);
+						stmt.setString(2, searchPattern);
+						stmt.setString(3, searchPattern);
+						stmt.setString(4, searchPattern);
+						stmt.setString(5, searchPattern);
+				}
+			}
+			
+			ResultSet rs = stmt.executeQuery();
+			
+			while(rs.next()) {
+				Vector<Object> row = new Vector<>();
+				
+				int idEmployee = rs.getInt("id");
+				
+				// Sử dụng class ThongTinLuong riêng
+				ThongTinLuong luong = SalaryCalculator.tinhLuong(idEmployee, connection);
+				
+				row.add(rs.getInt("id"));
+				
+				ImageIcon icon;
+				byte[] bytePhoto = rs.getBytes("photo");
+				if(bytePhoto != null && bytePhoto.length > 0) {
+					icon = new ImageIcon(bytePhoto);
+				} else {
+					bytePhoto = hImage.fileImage(DEFAULT_AVATAR_PATH, 40, 40);
+					if(bytePhoto != null) {
+						icon = new ImageIcon(bytePhoto);
+					} else {
+						icon = new ImageIcon(Objects.requireNonNull(this.getClass().getResource(DEFAULT_AVATAR_PATH)));
+					}
+				}
+				row.add(icon);
+				
+				row.add(rs.getString("first_name") + " " + rs.getString("last_name"));
+				row.add(rs.getString("position"));
+				row.add(luong.capBac.toUpperCase());
+				row.add(rs.getString("email"));
+				row.add(rs.getString("phone"));
+				row.add(rs.getString("identity_number"));
+				row.add(rs.getString("hire_date"));
+				row.add(String.format("%.0f", rs.getDouble("salary")));
+				row.add(String.format("%.1f", luong.heSoViTri));
+				row.add(luong.tenKinhNghiem);
+				row.add(String.format("%.0f", luong.luongCuoiCung));
+				
+				tableModel.addRow(row);
+			}
+			
+			rs.close();
+			stmt.close();
+		} catch (SQLException e) {
+			JOptionPane.showMessageDialog(this, "Error searching employees: " + e.getMessage());
+		}
+	}
+	
 	private void loadUserLanguage() {
 		try {
 			String query = "SELECT language FROM users WHERE id = ?";
@@ -391,7 +497,82 @@ public class CaculatorSalaryScreen extends JPanel {
 		}
 	}
 	
+	private void updateTableHeaders() {
+		// Update table headers
+		String[] columns = {
+				messages.getString("salary.column.id"),
+				messages.getString("salary.column.photo"),
+				messages.getString("salary.column.name"),
+				messages.getString("salary.column.position"),
+				messages.getString("salary.column.level"),
+				messages.getString("salary.column.email"),
+				messages.getString("salary.column.phone"),
+				messages.getString("salary.column.identitynumber"),
+				messages.getString("salary.column.hire_date"),
+				messages.getString("salary.column.salary"),
+				messages.getString("salary.column.salarycoefficient"),
+				messages.getString("salary.column.experience_level"),
+				messages.getString("salary.column.grosssalary"),
+			};
+		tableModel.setColumnIdentifiers(columns);
 
+		// Force table to update
+		salaryTable.getTableHeader().repaint();
+		
+		//// 2025-05-29 - customize center the photo column ////
+		salaryTable.getColumnModel().getColumn(1).setPreferredWidth(50);
+		salaryTable.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
+			@Override
+			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+				JLabel label = new JLabel();
+				label.setHorizontalAlignment(JLabel.CENTER);
+				label.setOpaque(true);
+				if(value instanceof ImageIcon) {
+					ImageIcon icon = (ImageIcon) value;
+					Image img = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+					label.setIcon(new ImageIcon(img));
+				}
+				
+				if(isSelected) {
+					label.setBackground(table.getSelectionBackground());
+					label.setForeground(table.getSelectionForeground());
+				}else {
+					label.setBackground(table.getBackground());
+					label.setForeground(table.getForeground());
+				}
+				
+				return label;
+			}
+		});
+	
+//		salaryTable.getColumnModel().getColumn(0).setWidth(0);
+//		salaryTable.getColumnModel().getColumn(0).setMinWidth(0);
+//		salaryTable.getColumnModel().getColumn(0).setMaxWidth(0);
+		
+		//// 2025-05-30 - add mouse listener for row selection and delete button ////
+		salaryTable.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				int column = salaryTable.getColumnModel().getColumnIndexAtX(e.getX());
+				int row = e.getY() / salaryTable.getRowHeight();
+				
+				if (row < salaryTable.getRowCount() && row >= 0 && column < salaryTable.getColumnCount() && column >= 0) {
+					if(e.getClickCount() == 2) {
+						if(row != -1) {
+							openEmployeeDetails(row);
+						}
+					}
+				}
+			
+			}
+			
+			@Override
+			public void mouseExited(MouseEvent e) {
+				salaryTable.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+			}
+		});
+		
+	}
 
 
 
