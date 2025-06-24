@@ -516,7 +516,6 @@ public class CaculatorSalaryScreen extends JPanel {
 			};
 		tableModel.setColumnIdentifiers(columns);
 
-		// Force table to update
 		salaryTable.getTableHeader().repaint();
 		
 		//// 2025-05-29 - customize center the photo column ////

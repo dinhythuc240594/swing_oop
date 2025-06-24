@@ -83,7 +83,6 @@ public class TaskManagementScreen extends JPanel {
 		refreshButton.setText(messages.getString("task.button.refresh"));
 		updateButton.setText(messages.getString("task.button.update"));
 		
-		// Force table to update
 		taskTable.getTableHeader().repaint();
 		
 		titleTask.setText(messages.getString("task.form.title"));
