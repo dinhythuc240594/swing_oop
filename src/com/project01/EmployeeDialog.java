@@ -57,6 +57,7 @@ public class EmployeeDialog extends JDialog {
 	private JLabel emailErrorLabel;
 	private JLabel usernameErrorLabel;
 	private JLabel identityNumberErrorLabel;
+	private JLabel salaryErrorLabel;
 	private ResourceBundle messages;
 	private static final String DEFAULT_LANGUAGE = "English";
 	private String currentLanguage = DEFAULT_LANGUAGE;
@@ -328,6 +329,10 @@ public class EmployeeDialog extends JDialog {
 			
 	        salaryField = new JTextField(24);	        
 	        salaryField.setText(String.valueOf(luong.luongCoBan));
+	        salaryErrorLabel = new JLabel("");
+	        salaryErrorLabel.setForeground(Color.RED);
+			formPanel.add(salaryErrorLabel);
+			formPanel.add(Box.createVerticalStrut(5));
 	        addFormField(formPanel, messages.getString("salary.column.salary"), salaryField);
 			addFormField(formPanel, messages.getString("salary.column.salarycoefficient"), salaryCoefficientField = new JTextField(24));
 			Double salary = SalaryCalculator.layHeSoViTri(positionField.getSelectedItem().toString());
@@ -351,7 +356,7 @@ public class EmployeeDialog extends JDialog {
 	                    grosssalary.setText(String.valueOf(salary_amount));
 	                    return true;
 	                } catch (NumberFormatException ex) {
-	                	emailErrorLabel.setText("Result1: Invalid input!");
+	                	salaryErrorLabel.setText("Invalid input, please input number");
 	                    return false;
 	                }
 				}
@@ -745,7 +750,7 @@ public class EmployeeDialog extends JDialog {
 				manageField.addItem(name);
 			}
 		} catch (SQLException e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 	}
 	

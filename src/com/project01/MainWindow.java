@@ -305,6 +305,7 @@ public class MainWindow {
 			
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(window, "Error delete employee data: " + e.getMessage());
+			System.out.println("Error delete employee data: " + e.getMessage());
 		}
 	}
 	
@@ -396,6 +397,7 @@ public class MainWindow {
 			}	
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(window, "Error loading profile: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	

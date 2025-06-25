@@ -288,7 +288,7 @@ public class CaculatorSalaryScreen extends JPanel {
 				javax.swing.JOptionPane.showMessageDialog(
 					this,
 					luong.xemChiTiet(),
-					"Chi tiết lương - " + tenNhanVien,
+					messages.getString("salary.dialog.detail") + " - " + tenNhanVien,
 					javax.swing.JOptionPane.INFORMATION_MESSAGE
 				);
 			}
@@ -468,6 +468,7 @@ public class CaculatorSalaryScreen extends JPanel {
 			stmt.close();
 		} catch (SQLException e) {
 			JOptionPane.showMessageDialog(this, "Error searching employees: " + e.getMessage());
+			System.out.println("Error searching employees: " + e.getMessage());
 		}
 	}
 	
