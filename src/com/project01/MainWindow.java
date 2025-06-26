@@ -177,8 +177,8 @@ public class MainWindow {
 			tabPanel.addTab(getMessage("tab.employees"), new ImageIcon(), employeePanel, getMessage("tab.employees.tooltip"));
 		}
 		
-		caculatorSalaryScreen = new CaculatorSalaryScreen(connection);
 		if(sessionManager.isManager()) {
+			caculatorSalaryScreen = new CaculatorSalaryScreen(connection);
 			tabPanel.addTab(getMessage("tab.salary"), new ImageIcon(), caculatorSalaryScreen, getMessage("tab.salary.tooltip"));
 		}
 		

@@ -511,8 +511,8 @@ public class EmployeeDialog extends JDialog {
 				if(rs.next()) {
 					int userId = rs.getInt(1);
 					// insert employee
-					String employeeQuery = "INSERT INTO employees (user_id, first_name, last_name, email, phone, position, hire_date, photo, manager_id) " +
-					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					String employeeQuery = "INSERT INTO employees (user_id, first_name, last_name, email, phone, position, hire_date, photo, identity_number, manager_id) " +
+					"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 					PreparedStatement employeeStmt = connection.prepareStatement(employeeQuery);
 					employeeStmt.setInt(1, userId);
 					employeeStmt.setString(2, firstNameField.getText());
@@ -530,8 +530,8 @@ public class EmployeeDialog extends JDialog {
 					employeeStmt.setString(7, hireDateStr);
 					
 					employeeStmt.setBytes(8, avatarImage);
-					
-					employeeStmt.setInt(9, getManagerId((String) manageField.getSelectedItem().toString()));
+					employeeStmt.setString(9, identityNumberField.getText());
+					employeeStmt.setInt(10, getManagerId((String) manageField.getSelectedItem().toString()));
 					
 					try {
 						employeeStmt.executeUpdate();
@@ -582,7 +582,7 @@ public class EmployeeDialog extends JDialog {
 				} else if(sessionManager.isAdmin()) {
 					
 					// update employee
-					query = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, phone = ?, position = ?, hire_date = ?, photo = ?, manager_id = ? " +
+					query = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, phone = ?, position = ?, hire_date = ?, photo = ?, manager_id = ?, identity_number = ? " +
 									"WHERE id = ?";
 					pstmt = connection.prepareStatement(query);
 
@@ -601,7 +601,8 @@ public class EmployeeDialog extends JDialog {
 					pstmt.setString(6, hireDateStr);
 					pstmt.setBytes(7, avatarImage);
 					pstmt.setInt(8, getManagerId((String) manageField.getSelectedItem().toString()));
-					pstmt.setInt(9, employeeId);
+					pstmt.setString(9, identityNumberField.getText());
+					pstmt.setInt(10, employeeId);
 					pstmt.executeUpdate();
 					pstmt.close();
 					

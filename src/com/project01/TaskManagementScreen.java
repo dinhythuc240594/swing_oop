@@ -438,18 +438,18 @@ public class TaskManagementScreen extends JPanel {
 		try {
 			
 			if(sessionManager.isEmployee()) {
-				String query = "UPDATE tasks SET title = ?, description = ?, assigned_to = ?, " + 
+				String query = "UPDATE tasks SET title = ?, description = ?, " + 
 						"priority = ?, status = ?, due_date = ? " +
-						"WHERE id = ?";
+						"WHERE id = ? AND assigned_to = (SELECT e.id FROM employees e WHERE e.user_id = ?)";
 				PreparedStatement stmt = connection.prepareStatement(query);
 				
 				stmt.setString(1, taskTitleField.getText());
 				stmt.setString(2, descriptionField.getText());
-				stmt.setInt(3, sessionManager.getUserId());
-				stmt.setString(4, (String) priorityCombobox.getSelectedItem());
-				stmt.setString(5, (String) statusCombobox.getSelectedItem());
-				stmt.setDate(6, new java.sql.Date(dueDateChooser.getDate().getTime()));
-				stmt.setInt(7, (int) tableModel.getValueAt(selectedRow, 0));
+				stmt.setString(3, (String) priorityCombobox.getSelectedItem());
+				stmt.setString(4, (String) statusCombobox.getSelectedItem());
+				stmt.setDate(5, new java.sql.Date(dueDateChooser.getDate().getTime()));
+				stmt.setInt(6, (int) tableModel.getValueAt(selectedRow, 0));
+				stmt.setInt(7, sessionManager.getUserId());
 				
 				stmt.executeUpdate();
 				stmt.close();
@@ -610,10 +610,10 @@ public class TaskManagementScreen extends JPanel {
 						query += " AND t.description LIKE ?";
 						break;
 					case "Assigned To":
-						query += " AND t.assigned_to LIKE ?";
+						query += " AND (assigned_first_name LIKE ? OR assigned_last_name LIKE ?)";
 						break;
 					case "Assigned By":
-						query += " AND t.assigned_by LIKE ?";
+						query += " AND (created_first_name LIKE ? OR created_last_name LIKE ?)";
 						break;
 					case "Priority":
 						query += " AND t.priority LIKE ?";
@@ -622,7 +622,7 @@ public class TaskManagementScreen extends JPanel {
 						query += " AND t.status LIKE ?";
 						break;
 					default:
-						query += " AND (t.title LIKE ? OR t.description LIKE ? OR t.assigned_to LIKE ? OR t.priority LIKE ? OR t.assigned_by LIKE ? OR t.status LIKE ?)";
+						query += " AND (t.title LIKE ? OR t.description LIKE ? OR (assigned_first_name LIKE ? OR assigned_last_name LIKE ?) OR t.priority LIKE ? OR (created_first_name LIKE ? OR created_last_name LIKE ?) OR t.status LIKE ?)";
 				}
 			}
 			
