@@ -42,8 +42,7 @@ public class MainWindow {
 	private JTabbedPane tabPanel;
 	
 	private TaskManagementScreen taskManagementScreen;
-	
-	private CaculatorSalaryScreen caculatorSalaryScreen;
+	private CaculatorSalaryScreen  caculatorSalaryScreen;
 	
 	// Add language-related fields
 	private static final String DEFAULT_LANGUAGE = "English";
@@ -134,7 +133,7 @@ public class MainWindow {
 			getMessage("search.name"),
 			getMessage("search.email"),
 			getMessage("search.position"),
-			getMessage("search.department")
+//			getMessage("search.department")
 		});
 		searchButton = new JButton(getMessage("search.button"));
 		
@@ -463,12 +462,12 @@ public class MainWindow {
 		themeCombo.setSelectedItem("Light"); // Default theme
 		fontSizeCombo.setSelectedItem("Medium"); // Default font size
 		
-		panel.add(new JLabel("Theme:"));
+		panel.add(new JLabel(getMessage("menu.appearance.theme")));
 		panel.add(themeCombo);
-		panel.add(new JLabel("Font Size:"));
+		panel.add(new JLabel(getMessage("menu.appearance.font_size")));
 		panel.add(fontSizeCombo);
 		
-		int result = JOptionPane.showConfirmDialog(window, panel, "Appearance Settings",
+		int result = JOptionPane.showConfirmDialog(window, panel, getMessage("menu.appearance"),
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		
 		if(result == JOptionPane.OK_OPTION) {
@@ -571,7 +570,7 @@ public class MainWindow {
 		panel.add(systemNoti);
 		panel.add(updateNotif);
 		
-		int result = JOptionPane.showConfirmDialog(window, panel, getMessage("menu.notification.title"),
+		int result = JOptionPane.showConfirmDialog(window, panel, getMessage("menu.notification"),
 				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		
 		if(result == JOptionPane.OK_OPTION) {
@@ -623,6 +622,11 @@ public class MainWindow {
 			// Update task management screen language
 			if (taskManagementScreen != null) {
 				taskManagementScreen.setLanguage(locale);
+			}
+			
+			// Update calculator salary screen language
+			if (caculatorSalaryScreen != null) {
+				caculatorSalaryScreen.setLanguage(locale);
 			}
 			
 			JOptionPane.showMessageDialog(window, 
@@ -704,10 +708,11 @@ public class MainWindow {
 			getMessage("table.actions")
 		};
 		
+		tableModel.setColumnIdentifiers(columns);
 		// Update column headers
-		for (int i = 0; i < columns.length; i++) {
-			tableModel.setColumnIdentifiers(columns);
-		}
+//		for (int i = 0; i < columns.length; i++) {
+//			tableModel.setColumnIdentifiers(columns);
+//		}
 		
 		//// 2025-05-29 - customize center the photo column ////
 		employeeTable.getColumnModel().getColumn(1).setPreferredWidth(50);
@@ -1005,7 +1010,7 @@ public class MainWindow {
 		searchFilter.addItem(getMessage("search.name"));
 		searchFilter.addItem(getMessage("search.email"));
 		searchFilter.addItem(getMessage("search.position"));
-		searchFilter.addItem(getMessage("search.department"));
+//		searchFilter.addItem(getMessage("search.department"));
 		
 		// Restore the selected index
 		if (selectedIndex >= 0 && selectedIndex < searchFilter.getItemCount()) {

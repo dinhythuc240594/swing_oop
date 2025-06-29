@@ -3,6 +3,8 @@ package com.project01;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.Connection;
@@ -32,7 +34,7 @@ public class TaskManagementScreen extends JPanel {
 	private JComboBox<String> assingnedByCombobox;
 	private JComboBox<String> priorityCombobox;
 	private JComboBox<String> statusCombobox;
-	private JButton addButton, editButton, deleteButton, refreshButton, updateButton;
+	private JButton addButton, editButton, deleteButton, refreshButton, updateButton, loadEmployeeButton;
 	private Connection connection;
 	private SessionManager sessionManager;
 	private JDateChooser dueDateChooser;
@@ -81,7 +83,6 @@ public class TaskManagementScreen extends JPanel {
 		refreshButton.setText(messages.getString("task.button.refresh"));
 		updateButton.setText(messages.getString("task.button.update"));
 		
-		// Force table to update
 		taskTable.getTableHeader().repaint();
 		
 		titleTask.setText(messages.getString("task.form.title"));
@@ -95,6 +96,33 @@ public class TaskManagementScreen extends JPanel {
 		priorityTask.setText(messages.getString("task.form.priority"));
 		statusTask.setText(messages.getString("task.form.status"));
 		dueDateTask.setText(messages.getString("task.form.due_date"));
+		
+		updateSearchFilter();
+	}
+	
+	private void updateSearchFilter() {
+		// Store the currently selected index
+		int selectedIndex = searchFilter.getSelectedIndex();
+		
+		// Update the items
+		searchFilter.removeAllItems();
+		searchFilter.addItem(messages.getString("search.task.all"));
+		searchFilter.addItem(messages.getString("search.task.title"));
+		searchFilter.addItem(messages.getString("search.task.description"));
+		searchFilter.addItem(messages.getString("search.task.assigned_to"));
+		searchFilter.addItem(messages.getString("search.task.assigned_by"));
+		searchFilter.addItem(messages.getString("search.task.priority"));
+		searchFilter.addItem(messages.getString("search.task.status"));
+		
+		// Restore the selected index
+		if (selectedIndex >= 0 && selectedIndex < searchFilter.getItemCount()) {
+			searchFilter.setSelectedIndex(selectedIndex);
+		}
+		
+		// Update other search components
+		searchLabel.setText(messages.getString("search.task.label"));
+		filterLabel.setText(messages.getString("search.task.filter"));
+		searchButton.setText(messages.getString("search.task.button"));
 	}
 
 	private void initComponents() {
@@ -107,18 +135,18 @@ public class TaskManagementScreen extends JPanel {
 		JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		searchField = new JTextField(20);
 		searchFilter = new JComboBox<>(new String[]{
-				messages.getString("search.all"),
-				messages.getString("search.title"),
-				messages.getString("search.description"),
-				messages.getString("search.assigned_to"),
-				messages.getString("search.create_by"),
-				messages.getString("search.priority"),
-				messages.getString("search.status")
+				messages.getString("search.task.all"),
+				messages.getString("search.task.title"),
+				messages.getString("search.task.description"),
+				messages.getString("search.task.assigned_to"),
+				messages.getString("search.task.assigned_by"),
+				messages.getString("search.task.priority"),
+				messages.getString("search.task.status")
 		});
-		searchButton = new JButton(messages.getString("search.button"));
+		searchButton = new JButton(messages.getString("search.task.button"));
 		
-		searchLabel = new JLabel(messages.getString("search.label"));
-		filterLabel = new JLabel(messages.getString("search.filter"));
+		searchLabel = new JLabel(messages.getString("search.task.label"));
+		filterLabel = new JLabel(messages.getString("search.task.filter"));
 		
 		searchPanel.add(searchLabel);
 		searchPanel.add(searchField);
@@ -242,17 +270,20 @@ public class TaskManagementScreen extends JPanel {
 		deleteButton = new JButton("Delete");
 		refreshButton = new JButton("Refresh");
 		updateButton =  new JButton("Update");
+		loadEmployeeButton = new JButton("Load Employee");
 		
 		addButton.setVisible(isAdmin || isManager);
 		editButton.setVisible(isAdmin || isManager);
 		deleteButton.setVisible(isAdmin || isManager);
 		updateButton.setVisible(isEmployee);
+		loadEmployeeButton.setVisible(isAdmin || isManager);
 		
 		buttonPanel.add(addButton);
 		buttonPanel.add(editButton);
 		buttonPanel.add(deleteButton);
 		buttonPanel.add(updateButton);
 		buttonPanel.add(refreshButton);
+		buttonPanel.add(loadEmployeeButton);
 		
 		formPanel.add(buttonPanel);
 		
@@ -261,6 +292,7 @@ public class TaskManagementScreen extends JPanel {
 		deleteButton.addActionListener(e -> deleteTask());
 		refreshButton.addActionListener(e -> loadTasks());
 		updateButton.addActionListener(e -> editTask());
+		loadEmployeeButton.addActionListener(e -> loadEmployees());
 		
 		if(isEmployee) {
 			taskTitleField.setEnabled(false);
@@ -547,16 +579,30 @@ public class TaskManagementScreen extends JPanel {
 		deleteButton.setText(messages.getString("task.button.delete"));
 		refreshButton.setText(messages.getString("task.button.refresh"));
 		updateButton.setText(messages.getString("task.button.update"));
-
+		loadEmployeeButton.setText(messages.getString("task.button.load"));
 	}
 	
 	//// 2025-06-16 - add function search for task management ////
 	private void searchTasks(String searchText, String filter) {
 		try {
 			tableModel.setRowCount(0);
-			String query = "SELECT t.id, t.title, t.description, t.assigned_to, t.priority, t.status, t.assigned_by, t.due_date " +
-					"FROM tasks t " +
-					"WHERE 1=1";
+			String query;
+			if(sessionManager.isAdmin() || sessionManager.isManager()) {
+				query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " +
+						"m.first_name as created_first_name, m.last_name as created_last_name " +
+						"FROM tasks t " +
+						"JOIN employees e ON t.assigned_to = e.id " +
+						"JOIN managers m ON t.assigned_by = m.id " +
+						"WHERE 1=1";	
+			}else {
+				query = "SELECT t.*, e.first_name as assigned_first_name, e.last_name as assigned_last_name, " +
+						"m.first_name as created_first_name, m.last_name as created_last_name " +
+						"FROM tasks t " +
+						"JOIN employees e ON t.assigned_to = e.id " +
+						"JOIN managers m ON t.assigned_by = m.id " +
+						"WHERE t.assigned_to = (SELECT e2.id FROM employees e2 WHERE e2.user_id = " + sessionManager.getUserId() + ")";
+			}
+			
 			
 			if (!searchText.isEmpty()) {
 				switch (filter) {
@@ -638,12 +684,11 @@ public class TaskManagementScreen extends JPanel {
 				
 				row.add(rs.getString("title"));
 				row.add(rs.getString("description"));
-				row.add(rs.getString("assigned_to"));
+				row.add(rs.getString("assigned_first_name") + " " + rs.getString("assigned_last_name"));
 				row.add(rs.getString("priority"));
 				row.add(rs.getString("status"));
-				row.add(rs.getString("assigned_by"));
-				row.add(rs.getString("due_date"));
-//				row.add("Delete");
+				row.add(rs.getDate("due_date"));
+				row.add(rs.getString("created_first_name") + " " + rs.getString("created_last_name"));
 				
 				tableModel.addRow(row);
 			}
