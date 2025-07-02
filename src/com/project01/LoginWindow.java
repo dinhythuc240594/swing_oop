@@ -48,7 +48,7 @@ public class LoginWindow {
 		loginWindow.setBackground(Color.WHITE);
 		loginWindow.setFont(new Font("Dialog", Font.BOLD, 14));
 		loginWindow.setBounds(100, 100, 600, 400); // Increased window size
-		loginWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		loginWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		loginWindow.getContentPane().setLayout(null);
 		
 		// Create main panel with absolute layout

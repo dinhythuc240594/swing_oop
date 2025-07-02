@@ -94,7 +94,7 @@ public class EmployeeDialog extends JDialog {
 
 		setTitle(messages.getString("employee.dialog.title"));
 		
-		setSize(600, 1200);
+		setSize(600, 800);
 		setLocationRelativeTo(parent);
 		setLayout(new BorderLayout());
 		
@@ -131,7 +131,13 @@ public class EmployeeDialog extends JDialog {
 		buttonPanel.add(saveButton);
 		buttonPanel.add(cancelButton);
 		
-		add(formPanel, BorderLayout.CENTER);
+		JScrollPane scrollPanel = new JScrollPane(formPanel);
+//		scrollPanel.setBorder(BorderFactory.createCompoundBorder(
+//				BorderFactory.createEmptyBorder(5, 5, 5, 5), 
+//				BorderFactory.createLineBorder(Color.GRAY)));
+		scrollPanel.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		
+		add(scrollPanel, BorderLayout.CENTER);
 		add(buttonPanel, BorderLayout.SOUTH);
 		
 		// load employee data if editing
@@ -300,7 +306,7 @@ public class EmployeeDialog extends JDialog {
 		addFormField(formPanel, "Department", departmentField);
 		
 		addFormField(formPanel, "ID", identityNumber = new JTextField(20));
-		addFormField(formPanel, "Address", addressField = new JTextField(200));
+		addFormField(formPanel, "Address", addressField = new JTextField(20));
 		addFormField(formPanel, "Postal Code", postalCodeField = new JTextField(20));
 		
 		cityField = new JComboBox<>(new String[] {"Technology", "Human Resource", "Accounting"});
@@ -417,15 +423,10 @@ public class EmployeeDialog extends JDialog {
 				}
 			});
 		}
-		
-		JScrollPane scrollPanel = new JScrollPane(formPanel);
-		scrollPanel.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createEmptyBorder(5, 5, 5, 5), 
-				BorderFactory.createLineBorder(Color.GRAY)));
-		
+
 		// add table to scroll pane
 		JPanel employeePanel = new JPanel(new BorderLayout());
-		employeePanel.add(scrollPanel, BorderLayout.CENTER);
+		employeePanel.add(formPanel, BorderLayout.CENTER);
 		
 	}
 	
