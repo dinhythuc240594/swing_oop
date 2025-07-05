@@ -49,3 +49,6 @@ Change absolute path to relative path for database avoid error missing database 
 5) click the File System or Workspace Button and set your project Name
 
 6) click the apply button
+# 2025-07-04
+Change UI/UX for application
+Find UI compatible, and change apperance application
