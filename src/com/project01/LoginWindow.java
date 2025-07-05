@@ -1,25 +1,17 @@
 package com.project01;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Image;
-
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.geom.RoundRectangle2D;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JTextField;
-import javax.swing.SwingConstants;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 public class LoginWindow {
 	
@@ -36,6 +28,16 @@ public class LoginWindow {
 	private SessionManager sessionManager;
 	private MainWindow mainWindow;
 	
+	// Modern color scheme
+	private static final Color PRIMARY_COLOR = new Color(52, 152, 219);
+	private static final Color SECONDARY_COLOR = new Color(41, 128, 185);
+	private static final Color SUCCESS_COLOR = new Color(46, 204, 113);
+	private static final Color DANGER_COLOR = new Color(231, 76, 60);
+	private static final Color LIGHT_GRAY = new Color(245, 245, 245);
+	private static final Color MEDIUM_GRAY = new Color(189, 195, 199);
+	private static final Color DARK_GRAY = new Color(52, 73, 94);
+	private static final Color WHITE = Color.WHITE;
+	
 	public LoginWindow(Connection connection) {
 		//// 2025-05-31 - inhered connection login ////
 		this.connection = connection;
@@ -44,64 +46,107 @@ public class LoginWindow {
 	
 	private void initialize() {
 		loginWindow = new JFrame();
-		loginWindow.setTitle("Login Page");
-		loginWindow.setBackground(Color.WHITE);
-		loginWindow.setFont(new Font("Dialog", Font.BOLD, 14));
-		loginWindow.setBounds(100, 100, 600, 400); // Increased window size
+		loginWindow.setTitle("Employee Management System - Login");
+		loginWindow.setBackground(WHITE);
+		loginWindow.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		loginWindow.setBounds(100, 100, 800, 500);
 		loginWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		loginWindow.setResizable(false);
 		loginWindow.getContentPane().setLayout(null);
 		
-		// Create main panel with absolute layout
-		JPanel mainPanel = new JPanel();
+		// Create main panel with gradient background
+		JPanel mainPanel = new JPanel() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+				
+				// Create gradient background
+				GradientPaint gradient = new GradientPaint(
+					0, 0, new Color(52, 152, 219, 50),
+					getWidth(), getHeight(), new Color(41, 128, 185, 30)
+				);
+				g2d.setPaint(gradient);
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+				g2d.dispose();
+			}
+		};
 		mainPanel.setLayout(null);
-		mainPanel.setBounds(0, 0, 600, 400);
-		mainPanel.setBackground(Color.WHITE);
+		mainPanel.setBounds(0, 0, 800, 500);
 		loginWindow.getContentPane().add(mainPanel);
 		
-		// Add Login Image
-		JLabel lblLoginImage = new JLabel("");
-		Image imgLogin = new ImageIcon(this.getClass().getResource("img/Login.png")).getImage();
-		lblLoginImage.setIcon(new ImageIcon(imgLogin));
-		lblLoginImage.setBounds(50, 50, 200, 200); // Adjusted image position and size
-		mainPanel.add(lblLoginImage);
+		// Create login card panel
+		JPanel loginCard = new JPanel();
+		loginCard.setLayout(null);
+		loginCard.setBounds(200, 50, 400, 400);
+		loginCard.setBackground(WHITE);
+		loginCard.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(30, 30, 30, 30)
+		));
+		
+		// Add shadow effect
+		loginCard.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createEmptyBorder(5, 5, 5, 5),
+			BorderFactory.createCompoundBorder(
+				new LineBorder(MEDIUM_GRAY, 1, true),
+				new EmptyBorder(25, 25, 25, 25)
+			)
+		));
+		
+		mainPanel.add(loginCard);
+		
+		// Title
+		JLabel titleLabel = new JLabel("Welcome Back!");
+		titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+		titleLabel.setForeground(DARK_GRAY);
+		titleLabel.setBounds(0, 20, 350, 40);
+		titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		loginCard.add(titleLabel);
+		
+		JLabel subtitleLabel = new JLabel("Sign in to your account");
+		subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		subtitleLabel.setForeground(MEDIUM_GRAY);
+		subtitleLabel.setBounds(0, 60, 350, 20);
+		subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		loginCard.add(subtitleLabel);
 		
 		// Username
-		JLabel lblUserName = new JLabel("Username");
-		lblUserName.setFont(new Font("Tahoma", Font.BOLD, 14));
-		lblUserName.setBounds(300, 80, 100, 30);
-		mainPanel.add(lblUserName);
+		JLabel lblUserName = new JLabel("👤 Username");
+		lblUserName.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		lblUserName.setForeground(DARK_GRAY);
+		lblUserName.setBounds(25, 100, 350, 25);
+		loginCard.add(lblUserName);
 		
-		usernameField = new JTextField(20);
-		usernameField.setBounds(300, 110, 200, 35); // Increased field size
-		usernameField.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		mainPanel.add(usernameField);
+		usernameField = createModernTextField(25);
+		usernameField.setBounds(25, 125, 350, 40);
+		loginCard.add(usernameField);
 		
 		// Password
-		JLabel lblPassword = new JLabel("Password");
-		lblPassword.setFont(new Font("Tahoma", Font.BOLD, 14));
-		lblPassword.setBounds(300, 160, 100, 30);
-		mainPanel.add(lblPassword);
+		JLabel lblPassword = new JLabel("🔒 Password");
+		lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		lblPassword.setForeground(DARK_GRAY);
+		lblPassword.setBounds(25, 175, 350, 25);
+		loginCard.add(lblPassword);
 		
-		passwordField = new JPasswordField(20);
-		passwordField.setBounds(300, 190, 200, 35); // Increased field size
-		passwordField.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		mainPanel.add(passwordField);
+		passwordField = createModernPasswordField(25);
+		passwordField.setBounds(25, 200, 350, 40);
+		loginCard.add(passwordField);
 		
 		// Error label
 		errorLabel = new JLabel("");
-		errorLabel.setForeground(Color.RED);
-		errorLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
-		errorLabel.setBounds(300, 230, 200, 20);
-		errorLabel.setHorizontalAlignment(SwingConstants.LEFT);
-		mainPanel.add(errorLabel);
+		errorLabel.setForeground(DANGER_COLOR);
+		errorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		errorLabel.setBounds(25, 250, 350, 20);
+		errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		loginCard.add(errorLabel);
 		
 		// Login button
-		JButton btnLogin = new JButton("Login");
-		Image imgBtn = new ImageIcon(this.getClass().getResource("img/Ok-icon.png")).getImage();
-		btnLogin.setIcon(new ImageIcon(imgBtn));
-		btnLogin.setFont(new Font("Tahoma", Font.BOLD, 14));
-		btnLogin.setBounds(300, 260, 200, 40); // Increased button size
-		mainPanel.add(btnLogin);
+		JButton btnLogin = createModernButton("🚀 Sign In", SUCCESS_COLOR);
+		btnLogin.setBounds(25, 280, 350, 45);
+		btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		loginCard.add(btnLogin);
 		
 		// Add Enter key functionality
 		KeyAdapter enterKeyAdapter = new KeyAdapter() {
@@ -117,15 +162,140 @@ public class LoginWindow {
 		passwordField.addKeyListener(enterKeyAdapter);
 		
 		btnLogin.addActionListener(e -> performLogin());
+		
+		// Add decorative elements
+		addDecorativeElements(mainPanel);
 	}
 	
+	private JTextField createModernTextField(int columns) {
+		JTextField textField = new JTextField(columns);
+		textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		textField.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(10, 15, 10, 15)
+		));
+		textField.setBackground(WHITE);
+		textField.setForeground(DARK_GRAY);
+		
+		// Add focus listener for modern effect
+		textField.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
+			public void focusGained(java.awt.event.FocusEvent e) {
+				textField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(PRIMARY_COLOR, 2, true),
+					new EmptyBorder(9, 14, 9, 14)
+				));
+			}
+			
+			@Override
+			public void focusLost(java.awt.event.FocusEvent e) {
+				textField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(MEDIUM_GRAY, 1, true),
+					new EmptyBorder(10, 15, 10, 15)
+				));
+			}
+		});
+		
+		return textField;
+	}
+	
+	private JPasswordField createModernPasswordField(int columns) {
+		JPasswordField passwordField = new JPasswordField(columns);
+		passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		passwordField.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(10, 15, 10, 15)
+		));
+		passwordField.setBackground(WHITE);
+		passwordField.setForeground(DARK_GRAY);
+		
+		// Add focus listener for modern effect
+		passwordField.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
+			public void focusGained(java.awt.event.FocusEvent e) {
+				passwordField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(PRIMARY_COLOR, 2, true),
+					new EmptyBorder(9, 14, 9, 14)
+				));
+			}
+			
+			@Override
+			public void focusLost(java.awt.event.FocusEvent e) {
+				passwordField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(MEDIUM_GRAY, 1, true),
+					new EmptyBorder(10, 15, 10, 15)
+				));
+			}
+		});
+		
+		return passwordField;
+	}
+	
+	private JButton createModernButton(String text, Color backgroundColor) {
+		JButton button = new JButton(text) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				
+				if (getModel().isPressed()) {
+					g2d.setColor(backgroundColor.darker());
+				} else if (getModel().isRollover()) {
+					g2d.setColor(backgroundColor.brighter());
+				} else {
+					g2d.setColor(backgroundColor);
+				}
+				
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+				g2d.dispose();
+				
+				super.paintComponent(g);
+			}
+		};
+		
+		button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		button.setForeground(WHITE);
+		button.setBackground(backgroundColor);
+		button.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+		button.setFocusPainted(false);
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.setOpaque(false);
+		button.setContentAreaFilled(false);
+		
+		return button;
+	}
+	
+	private void addDecorativeElements(JPanel mainPanel) {
+		// Add some decorative circles
+		JPanel decorativePanel = new JPanel() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				
+				// Draw decorative circles
+				g2d.setColor(new Color(52, 152, 219, 20));
+				g2d.fillOval(50, 50, 100, 100);
+				g2d.fillOval(650, 350, 80, 80);
+				g2d.fillOval(100, 400, 60, 60);
+				
+				g2d.dispose();
+			}
+		};
+		decorativePanel.setOpaque(false);
+		decorativePanel.setBounds(0, 0, 800, 500);
+		mainPanel.add(decorativePanel);
+	}
+
 	private void performLogin() {
 		try {
 			String user_name = usernameField.getText();
 			String pwd = new String(passwordField.getPassword());
 			
 			if(user_name.isEmpty() || pwd.isEmpty()) {
-				errorLabel.setText("Please enter both username and password");
+				errorLabel.setForeground(DANGER_COLOR);
+				errorLabel.setText("⚠️ Please enter both username and password");
 				return;
 			}
 			
@@ -146,25 +316,36 @@ public class LoginWindow {
 			}
 			
 			if(count == 1) {
-				// Close login window
-				loginWindow.dispose();
+				// Show success message
+				errorLabel.setForeground(SUCCESS_COLOR);
+				errorLabel.setText("✅ Login successful! Redirecting...");
 				
-				// Set session login for user login
-				sessionManager = SessionManager.getInstance();
-				sessionManager.login(getUserId(), getUserName(), getUserRole());
-				
-				// Show main window
-				mainWindow = new MainWindow();
-				mainWindow.show();
+				// Close login window after a short delay
+				Timer timer = new Timer(1000, e -> {
+					loginWindow.dispose();
+					
+					// Set session login for user login
+					sessionManager = SessionManager.getInstance();
+					sessionManager.login(getUserId(), getUserName(), getUserRole());
+					
+					// Show main window
+					mainWindow = new MainWindow();
+					mainWindow.show();
+				});
+				timer.setRepeats(false);
+				timer.start();
 			} else if(count > 1) {
-				errorLabel.setText("Duplicate username and password found");
+				errorLabel.setForeground(DANGER_COLOR);
+				errorLabel.setText("❌ Duplicate username and password found");
 			} else {
-				errorLabel.setText("Invalid username or password");
+				errorLabel.setForeground(DANGER_COLOR);
+				errorLabel.setText("❌ Invalid username or password");
 			}
 			rs.close();
 			pst.close();
 		} catch (Exception e1) {
-			errorLabel.setText("Error: " + e1.getMessage());
+			errorLabel.setForeground(DANGER_COLOR);
+			errorLabel.setText("❌ Error: " + e1.getMessage());
 			e1.printStackTrace();
 		}
 	}

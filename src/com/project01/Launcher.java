@@ -37,7 +37,7 @@ public class Launcher {
 	}
 	
 	private static void initDatabase() {
-		connection = sqliteConnection.dbConnector();
+		connection = SqlServerConnection.dbConnector();
 	}
 
 }

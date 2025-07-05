@@ -1,9 +1,6 @@
 package com.project01;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-
+import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.sql.Connection;
@@ -12,14 +9,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 
 import com.toedter.calendar.JDateChooser;
 import java.util.Locale;
-
 import java.util.ResourceBundle;
 import java.util.Vector;
-
 
 public class TaskManagementScreen extends JPanel {
 
@@ -45,13 +44,39 @@ public class TaskManagementScreen extends JPanel {
 	private JLabel searchLabel;
 	private JLabel filterLabel;
 	
+	// Modern color scheme
+	private static final Color PRIMARY_COLOR = new Color(52, 152, 219);
+	private static final Color SECONDARY_COLOR = new Color(41, 128, 185);
+	private static final Color SUCCESS_COLOR = new Color(46, 204, 113);
+	private static final Color WARNING_COLOR = new Color(241, 196, 15);
+	private static final Color DANGER_COLOR = new Color(231, 76, 60);
+	private static final Color LIGHT_GRAY = new Color(245, 245, 245);
+	private static final Color MEDIUM_GRAY = new Color(189, 195, 199);
+	private static final Color DARK_GRAY = new Color(52, 73, 94);
+	private static final Color WHITE = Color.WHITE;
+	private static final Color TABLE_HEADER_BG = new Color(236, 240, 241);
+	private static final Color TABLE_ALTERNATE_ROW = new Color(248, 249, 250);
 	
 	public TaskManagementScreen(Connection connection) {
 		this.connection = connection;
 		this.sessionManager = SessionManager.getInstance();
 		this.messages = ResourceBundle.getBundle("messages", Locale.of("en"));
+		
+		// Set modern look and feel
+		setupModernLookAndFeel();
+		
 		initComponents();
 		loadTasks();
+	}
+	
+	private void setupModernLookAndFeel() {
+		// Set modern UI properties
+		UIManager.put("Button.arc", 8);
+		UIManager.put("Component.arc", 8);
+		UIManager.put("TextComponent.arc", 8);
+		UIManager.put("ComboBox.arc", 8);
+		UIManager.put("Table.arc", 8);
+		UIManager.put("TableHeader.arc", 8);
 	}
 	
 	public void setLanguage(Locale locale) {
@@ -60,7 +85,6 @@ public class TaskManagementScreen extends JPanel {
 	}
 
 	private void updateUIText() {
-
 		// Update table headers
 		String[] columns = {
 			messages.getString("task.id"),
@@ -124,34 +148,109 @@ public class TaskManagementScreen extends JPanel {
 
 	private void initComponents() {
 		setLayout(new BorderLayout());
-		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		setBackground(WHITE);
+		setBorder(new EmptyBorder(20, 20, 20, 20));
 		
 		loadUserLanguage();
 
-		// Add search panel
-		JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		searchField = new JTextField(20);
-		searchFilter = new JComboBox<>(new String[]{
-				messages.getString("search.task.all"),
-				messages.getString("search.task.title"),
-				messages.getString("search.task.description"),
-				messages.getString("search.task.assigned_to"),
-				messages.getString("search.task.assigned_by"),
-				messages.getString("search.task.priority"),
-				messages.getString("search.task.status")
-		});
-		searchButton = new JButton(messages.getString("search.task.button"));
+		// Create modern search panel
+		JPanel searchPanel = createModernSearchPanel();
 		
+		// Create modern table panel
+		JPanel tablePanel = createModernTablePanel();
+		
+		// Create modern form panel
+		JPanel formPanel = createModernFormPanel();
+		
+		// Create modern control panel
+		JPanel controlPanel = createModernControlPanel();
+		
+		// Layout components
+		JPanel topPanel = new JPanel(new BorderLayout());
+		topPanel.setBackground(WHITE);
+		topPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
+		topPanel.add(searchPanel, BorderLayout.CENTER);
+		
+		JPanel centerPanel = new JPanel(new BorderLayout());
+		centerPanel.setBackground(WHITE);
+		centerPanel.add(tablePanel, BorderLayout.CENTER);
+		centerPanel.add(formPanel, BorderLayout.EAST);
+		
+		add(topPanel, BorderLayout.NORTH);
+		add(centerPanel, BorderLayout.CENTER);
+		add(controlPanel, BorderLayout.SOUTH);
+		
+		// Add table selection listener
+		taskTable.getSelectionModel().addListSelectionListener(e -> {
+			if(!e.getValueIsAdjusting()) {
+				int selectedRow = taskTable.getSelectedRow();
+				if(selectedRow >= 0) {
+					populaField(selectedRow);
+				}
+			}
+		});
+		
+		// Set button visibility based on user role
+		boolean isAdmin = sessionManager.isAdmin();
+		boolean isManager = sessionManager.isManager();
+		boolean isEmployee = sessionManager.isEmployee();
+		
+		addButton.setVisible(isAdmin || isManager);
+		editButton.setVisible(isAdmin || isManager);
+		deleteButton.setVisible(isAdmin || isManager);
+		updateButton.setVisible(isEmployee);
+		loadEmployeeButton.setVisible(isAdmin || isManager);
+		
+		// Load initial data
+		loadEmployees();
+		loadAssignedBy();
+		
+		updateUIText();
+	}
+	
+	private JPanel createModernSearchPanel() {
+		JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+		searchPanel.setBackground(WHITE);
+		searchPanel.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(15, 15, 15, 15)
+		));
+		
+		// Search field
+		searchField = createModernTextField(20);
+		searchField.setToolTipText("Enter search term...");
+		
+		// Search filter
+		searchFilter = createModernComboBox(new String[]{
+			messages.getString("search.task.all"),
+			messages.getString("search.task.title"),
+			messages.getString("search.task.description"),
+			messages.getString("search.task.assigned_to"),
+			messages.getString("search.task.assigned_by"),
+			messages.getString("search.task.priority"),
+			messages.getString("search.task.status")
+		});
+		
+		// Search button
+		searchButton = createModernButton(messages.getString("search.task.button"), PRIMARY_COLOR);
+		searchButton.setIcon(new ImageIcon("🔍"));
+		
+		// Labels
 		searchLabel = new JLabel(messages.getString("search.task.label"));
+		searchLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		searchLabel.setForeground(DARK_GRAY);
+		
 		filterLabel = new JLabel(messages.getString("search.task.filter"));
+		filterLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		filterLabel.setForeground(DARK_GRAY);
 		
 		searchPanel.add(searchLabel);
 		searchPanel.add(searchField);
 		searchPanel.add(filterLabel);
 		searchPanel.add(searchFilter);
 		searchPanel.add(searchButton);
-		searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
+		
+		// Add event listeners
 		searchButton.addActionListener(e -> searchTasks(searchField.getText(), (String)searchFilter.getSelectedItem()));
 		searchField.addKeyListener(new KeyAdapter() {
 			@Override
@@ -161,6 +260,23 @@ public class TaskManagementScreen extends JPanel {
 				}
 			}
 		});
+		
+		return searchPanel;
+	}
+	
+	private JPanel createModernTablePanel() {
+		JPanel tablePanel = new JPanel(new BorderLayout());
+		tablePanel.setBackground(WHITE);
+		tablePanel.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(10, 10, 10, 10)
+		));
+		
+		// Table title
+		JLabel tableTitle = new JLabel("📋 Task List");
+		tableTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		tableTitle.setForeground(DARK_GRAY);
+		tableTitle.setBorder(new EmptyBorder(0, 0, 10, 0));
 		
 		String[] columns = {
 			messages.getString("task.id"),
@@ -181,8 +297,36 @@ public class TaskManagementScreen extends JPanel {
 		};
 		
 		taskTable = new JTable(tableModel);
-		taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		setupModernTable();
 		
+		JScrollPane tableScrollPanel = new JScrollPane(taskTable);
+		tableScrollPanel.setBorder(BorderFactory.createEmptyBorder());
+		tableScrollPanel.getViewport().setBackground(WHITE);
+		
+		tablePanel.add(tableTitle, BorderLayout.NORTH);
+		tablePanel.add(tableScrollPanel, BorderLayout.CENTER);
+		
+		return tablePanel;
+	}
+	
+	private void setupModernTable() {
+		taskTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		taskTable.setRowHeight(50);
+		taskTable.setShowGrid(false);
+		taskTable.setIntercellSpacing(new Dimension(0, 0));
+		taskTable.setBackground(WHITE);
+		taskTable.setSelectionBackground(new Color(52, 152, 219, 30));
+		taskTable.setSelectionForeground(DARK_GRAY);
+		taskTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		
+		// Modern table header
+		JTableHeader header = taskTable.getTableHeader();
+		header.setBackground(TABLE_HEADER_BG);
+		header.setForeground(DARK_GRAY);
+		header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		header.setBorder(new MatteBorder(0, 0, 2, 0, MEDIUM_GRAY));
+		
+		// Set column widths
 		taskTable.getColumnModel().getColumn(0).setPreferredWidth(50); //ID
 		taskTable.getColumnModel().getColumn(1).setPreferredWidth(150); // TITLE
 		taskTable.getColumnModel().getColumn(2).setPreferredWidth(200); // DESCRIPTION
@@ -191,115 +335,225 @@ public class TaskManagementScreen extends JPanel {
 		taskTable.getColumnModel().getColumn(5).setPreferredWidth(100); // STATUS
 		taskTable.getColumnModel().getColumn(6).setPreferredWidth(100); // DUE DATE
 		taskTable.getColumnModel().getColumn(7).setPreferredWidth(100); // CREATE BY
-		
-		JPanel topPanel = new JPanel(new BorderLayout());
-		topPanel.add(searchPanel, BorderLayout.CENTER);
-		
-		JScrollPane tableScrollPanel = new JScrollPane(taskTable);
-//		add(tableScrollPanel);
-		// add table to scroll pane
-		JPanel taskPanel = new JPanel(new BorderLayout());
-		taskPanel.add(topPanel, BorderLayout.NORTH);
-		taskPanel.add(tableScrollPanel, BorderLayout.CENTER);
-		
-		add(taskPanel);
-		
-		// create control panel
-		JPanel controlPanel = createControlPanel();
-		add(controlPanel, BorderLayout.EAST);
-
-		// add table selection listener
-		taskTable.getSelectionModel().addListSelectionListener(e -> {
-			if(!e.getValueIsAdjusting()) {
-				int selectedRow = taskTable.getSelectedRow();
-				if(selectedRow >= 0) {
-					populaField(selectedRow);
-				}
-			}
-		});
 	}
 	
-	private JPanel createControlPanel() {
+	private JPanel createModernFormPanel() {
 		JPanel formPanel = new JPanel();
 		formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-		formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		formPanel.setBackground(WHITE);
+		formPanel.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(20, 20, 20, 20)
+		));
+		formPanel.setPreferredSize(new Dimension(300, 0));
 		
-		boolean isAdmin = sessionManager.isAdmin();
-		boolean isManager = sessionManager.isManager();
-		boolean isEmployee = sessionManager.isEmployee();
+		// Form title
+		JLabel formTitle = new JLabel("✏️ Task Form");
+		formTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		formTitle.setForeground(DARK_GRAY);
+		formTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+		formTitle.setBorder(new EmptyBorder(0, 0, 20, 0));
+		formPanel.add(formTitle);
 		
-		descriptionField = new JTextArea(4, 20);
-		JScrollPane desScroolPanel = new JScrollPane(descriptionField);
+		// Task title
+		titleTask = new JLabel(messages.getString("task.form.title"));
+		titleTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		titleTask.setForeground(DARK_GRAY);
+		taskTitleField = createModernTextField(15);
+		addFormField(formPanel, titleTask, taskTitleField);
 		
-		employeeCombobox = new JComboBox<>();
-		employeeCombobox.setPreferredSize(new Dimension(100, employeeCombobox.getPreferredSize().height));
-		loadEmployees();
+		// Description
+		descriptionTask = new JLabel(messages.getString("task.form.description"));
+		descriptionTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		descriptionTask.setForeground(DARK_GRAY);
+		descriptionField = createModernTextArea(5, 15);
+		addFormField(formPanel, descriptionTask, new JScrollPane(descriptionField));
 		
-		assingnedByCombobox = new JComboBox<>();
-		assingnedByCombobox.setPreferredSize(new Dimension(100, assingnedByCombobox.getPreferredSize().height));
-		loadAssignedBy();
-		
-		priorityCombobox = new JComboBox<>(new String[] {"Low", "Medium", "High"});
-		priorityCombobox.setPreferredSize(new Dimension(100, priorityCombobox.getPreferredSize().height));
-		
-		statusCombobox = new JComboBox<>(new String[] {"Pending", "In Progress", "Completed"});
-		statusCombobox.setPreferredSize(new Dimension(100, statusCombobox.getPreferredSize().height));
-		
-		dueDateChooser = new JDateChooser();
-		dueDateChooser.setPreferredSize(new Dimension(100, dueDateChooser.getPreferredSize().height));
-		
-		addFormField(formPanel, titleTask = new JLabel(messages.getString("task.form.title")), taskTitleField = new JTextField(20));
-		addFormField(formPanel, descriptionTask = new JLabel(messages.getString("task.form.description")), desScroolPanel);
-		
-		if(isEmployee) {
-			addFormField(formPanel, assignedByTask = new JLabel(messages.getString("task.form.assigned_by")), assingnedByCombobox);
+		// Assigned to/by
+		if(sessionManager.isEmployee()) {
+			assignedByTask = new JLabel(messages.getString("task.form.assigned_by"));
+			assignedByTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+			assignedByTask.setForeground(DARK_GRAY);
+			assingnedByCombobox = createModernComboBox(new String[]{});
+			addFormField(formPanel, assignedByTask, assingnedByCombobox);
 		} else {
-			addFormField(formPanel, assignedToTask = new JLabel(messages.getString("task.form.assigned_to")), employeeCombobox);
+			assignedToTask = new JLabel(messages.getString("task.form.assigned_to"));
+			assignedToTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+			assignedToTask.setForeground(DARK_GRAY);
+			employeeCombobox = createModernComboBox(new String[]{});
+			addFormField(formPanel, assignedToTask, employeeCombobox);
 		}
 		
-		addFormField(formPanel, priorityTask = new JLabel(messages.getString("task.form.priority")), priorityCombobox);
-		addFormField(formPanel, statusTask = new JLabel(messages.getString("task.form.status")), statusCombobox);
-		addFormField(formPanel, dueDateTask = new JLabel(messages.getString("task.form.due_date")), dueDateChooser);
+		// Priority
+		priorityTask = new JLabel(messages.getString("task.form.priority"));
+		priorityTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		priorityTask.setForeground(DARK_GRAY);
+		priorityCombobox = createModernComboBox(new String[]{
+			messages.getString("task.priority.low"),
+			messages.getString("task.priority.medium"),
+			messages.getString("task.priority.high")
+		});
+		addFormField(formPanel, priorityTask, priorityCombobox);
 		
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		addButton = new JButton("Add");
-		editButton = new JButton("Edit");
-		deleteButton = new JButton("Delete");
-		refreshButton = new JButton("Refresh");
-		updateButton =  new JButton("Update");
-		loadEmployeeButton = new JButton("Load Employee");
+		// Status
+		statusTask = new JLabel(messages.getString("task.form.status"));
+		statusTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		statusTask.setForeground(DARK_GRAY);
+		statusCombobox = createModernComboBox(new String[]{
+			messages.getString("task.status.pending"),
+			messages.getString("task.status.in_progress"),
+			messages.getString("task.status.completed")
+		});
+		addFormField(formPanel, statusTask, statusCombobox);
 		
-		addButton.setVisible(isAdmin || isManager);
-		editButton.setVisible(isAdmin || isManager);
-		deleteButton.setVisible(isAdmin || isManager);
-		updateButton.setVisible(isEmployee);
-		loadEmployeeButton.setVisible(isAdmin || isManager);
+		// Due date
+		dueDateTask = new JLabel(messages.getString("task.form.due_date"));
+		dueDateTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		dueDateTask.setForeground(DARK_GRAY);
+		dueDateChooser = new JDateChooser();
+		dueDateChooser.setPreferredSize(new Dimension(200, 35));
+		dueDateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		dueDateChooser.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(8, 12, 8, 12)
+		));
+		addFormField(formPanel, dueDateTask, dueDateChooser);
 		
-		buttonPanel.add(addButton);
-		buttonPanel.add(editButton);
-		buttonPanel.add(deleteButton);
-		buttonPanel.add(updateButton);
-		buttonPanel.add(refreshButton);
-		buttonPanel.add(loadEmployeeButton);
+		return formPanel;
+	}
+	
+	private JPanel createModernControlPanel() {
+		JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+		controlPanel.setBackground(WHITE);
+		controlPanel.setBorder(new EmptyBorder(20, 0, 0, 0));
 		
-		formPanel.add(buttonPanel);
-		
+		addButton = createModernButton(messages.getString("task.button.add"), SUCCESS_COLOR);
+		addButton.setIcon(new ImageIcon("➕"));
 		addButton.addActionListener(e -> addTask());
+		
+		editButton = createModernButton(messages.getString("task.button.edit"), WARNING_COLOR);
+		editButton.setIcon(new ImageIcon("✏️"));
 		editButton.addActionListener(e -> editTask());
+		
+		deleteButton = createModernButton(messages.getString("task.button.delete"), DANGER_COLOR);
+		deleteButton.setIcon(new ImageIcon("🗑️"));
 		deleteButton.addActionListener(e -> deleteTask());
+		
+		refreshButton = createModernButton(messages.getString("task.button.refresh"), PRIMARY_COLOR);
+		refreshButton.setIcon(new ImageIcon("🔄"));
 		refreshButton.addActionListener(e -> loadTasks());
-		updateButton.addActionListener(e -> editTask());
+		
+		updateButton = createModernButton(messages.getString("task.button.update"), SUCCESS_COLOR);
+		updateButton.setIcon(new ImageIcon("💾"));
+		updateButton.addActionListener(e -> updateTask());
+		updateButton.setVisible(false);
+		
+		loadEmployeeButton = createModernButton(messages.getString("task.button.load"), SECONDARY_COLOR);
+		loadEmployeeButton.setIcon(new ImageIcon("👥"));
 		loadEmployeeButton.addActionListener(e -> loadEmployees());
 		
-		if(isEmployee) {
-			taskTitleField.setEnabled(false);
-			priorityCombobox.setEnabled(false);
-			dueDateChooser.setEnabled(false);
-			assingnedByCombobox.setEnabled(false);
-		}
-
-		updateOtherComponents();
-		return formPanel;
+		controlPanel.add(addButton);
+		controlPanel.add(editButton);
+		controlPanel.add(deleteButton);
+		controlPanel.add(refreshButton);
+		controlPanel.add(updateButton);
+		controlPanel.add(loadEmployeeButton);
+		
+		return controlPanel;
+	}
+	
+	private JTextField createModernTextField(int columns) {
+		JTextField textField = new JTextField(columns);
+		textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		textField.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(8, 12, 8, 12)
+		));
+		textField.setBackground(WHITE);
+		textField.setForeground(DARK_GRAY);
+		
+		// Add focus listener for modern effect
+		textField.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
+			public void focusGained(java.awt.event.FocusEvent e) {
+				textField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(PRIMARY_COLOR, 2, true),
+					new EmptyBorder(7, 11, 7, 11)
+				));
+			}
+			
+			@Override
+			public void focusLost(java.awt.event.FocusEvent e) {
+				textField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(MEDIUM_GRAY, 1, true),
+					new EmptyBorder(8, 12, 8, 12)
+				));
+			}
+		});
+		
+		return textField;
+	}
+	
+	private JTextArea createModernTextArea(int rows, int columns) {
+		JTextArea textArea = new JTextArea(rows, columns);
+		textArea.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		textArea.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(8, 12, 8, 12)
+		));
+		textArea.setBackground(WHITE);
+		textArea.setForeground(DARK_GRAY);
+		textArea.setLineWrap(true);
+		textArea.setWrapStyleWord(true);
+		
+		return textArea;
+	}
+	
+	private JComboBox<String> createModernComboBox(String[] items) {
+		JComboBox<String> comboBox = new JComboBox<>(items);
+		comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		comboBox.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(8, 12, 8, 12)
+		));
+		comboBox.setBackground(WHITE);
+		comboBox.setForeground(DARK_GRAY);
+		
+		return comboBox;
+	}
+	
+	private JButton createModernButton(String text, Color backgroundColor) {
+		JButton button = new JButton(text) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				
+				if (getModel().isPressed()) {
+					g2d.setColor(backgroundColor.darker());
+				} else if (getModel().isRollover()) {
+					g2d.setColor(backgroundColor.brighter());
+				} else {
+					g2d.setColor(backgroundColor);
+				}
+				
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+				g2d.dispose();
+				
+				super.paintComponent(g);
+			}
+		};
+		
+		button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		button.setForeground(WHITE);
+		button.setBackground(backgroundColor);
+		button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+		button.setFocusPainted(false);
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.setOpaque(false);
+		button.setContentAreaFilled(false);
+		
+		return button;
 	}
 	
 	private void addFormField(JPanel panel, JLabel labelComponent, JComponent field) {
@@ -476,6 +730,38 @@ public class TaskManagementScreen extends JPanel {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private void updateTask() {
+		// This method is for employees to update their task status
+		int selectedRow = taskTable.getSelectedRow();
+		if(selectedRow < 0) {
+			JOptionPane.showMessageDialog(this, "Please select a task to update");
+			return;
+		}
+
+		try {
+			String query = "UPDATE tasks SET status = ? WHERE id = ? AND assigned_to = (SELECT e.id FROM employees e WHERE e.user_id = ?)";
+			PreparedStatement stmt = connection.prepareStatement(query);
+			stmt.setString(1, (String) statusCombobox.getSelectedItem());
+			stmt.setInt(2, (int) tableModel.getValueAt(selectedRow, 0));
+			stmt.setInt(3, sessionManager.getUserId());
+			
+			int rowsAffected = stmt.executeUpdate();
+			stmt.close();
+			
+			if(rowsAffected > 0) {
+				JOptionPane.showMessageDialog(this, "✅ Task status updated successfully!");
+			} else {
+				JOptionPane.showMessageDialog(this, "❌ You can only update tasks assigned to you.");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(this, "❌ Error updating task: " + e.getMessage());
+		}
+						
+		clearFields();
+		loadTasks();
 	}
 	
 	private void deleteTask() {

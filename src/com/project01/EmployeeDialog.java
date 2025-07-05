@@ -16,6 +16,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
+import javax.swing.UIManager;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -95,9 +96,20 @@ public class EmployeeDialog extends JDialog {
 
 		setTitle(messages.getString("employee.dialog.title"));
 		
-		setSize(600, 800);
+		setSize(700, 900);
 		setLocationRelativeTo(parent);
 		setLayout(new BorderLayout());
+		setResizable(true);
+		
+		// Enable double buffering for smoother rendering
+		((JComponent) getContentPane()).setDoubleBuffered(true);
+		
+		// Set modern look and feel
+		try {
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 		SessionManager sessionManager = SessionManager.getInstance();
 		if(sessionManager.isAdmin()) {
@@ -115,28 +127,39 @@ public class EmployeeDialog extends JDialog {
 		// create form panel
 		JPanel formPanel = new JPanel();
 		formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-		formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		formPanel.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createEmptyBorder(20, 20, 20, 20),
+			BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true)
+		));
+		formPanel.setOpaque(true);
+		formPanel.setBackground(new Color(248, 249, 250));
 
 		createForm(formPanel, sessionManager);
 		
 		// add button panel
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 10));
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+		buttonPanel.setBackground(new Color(248, 249, 250));
 		
 		saveButton = new JButton("Save");
 		saveButton.addActionListener(e -> saveEmployee());
 		saveButton.setVisible(sessionManager.isAdmin());
+		styleButton(saveButton, new Color(40, 167, 69), Color.WHITE);
 		
 		cancelButton = new JButton("Cancel");
 		cancelButton.addActionListener(e -> dispose());
+		styleButton(cancelButton, new Color(108, 117, 125), Color.WHITE);
 		
 		buttonPanel.add(saveButton);
 		buttonPanel.add(cancelButton);
 		
 		JScrollPane scrollPanel = new JScrollPane(formPanel);
-//		scrollPanel.setBorder(BorderFactory.createCompoundBorder(
-//				BorderFactory.createEmptyBorder(5, 5, 5, 5), 
-//				BorderFactory.createLineBorder(Color.GRAY)));
-		scrollPanel.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollPanel.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		scrollPanel.getVerticalScrollBar().setUnitIncrement(16);
+		scrollPanel.getHorizontalScrollBar().setUnitIncrement(16);
+		scrollPanel.setWheelScrollingEnabled(true);
+		scrollPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		scrollPanel.getViewport().setBackground(new Color(248, 249, 250));
 		
 		add(scrollPanel, BorderLayout.CENTER);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -221,20 +244,33 @@ public class EmployeeDialog extends JDialog {
 		gbc.insets = new Insets(5, 5, 5, 5);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		
-		JPanel avatarPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel avatarPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+		avatarPanel.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createEmptyBorder(10, 0, 20, 0),
+			BorderFactory.createLineBorder(new Color(220, 220, 220), 1, true)
+		));
+		avatarPanel.setBackground(new Color(255, 255, 255));
 		
 		JLabel avatarLabel = new JLabel(messages.getString("employee.dialog.avatar"));
 		avatarLabel.setPreferredSize(new Dimension(150, 25));
+		avatarLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		avatarLabel.setForeground(new Color(73, 80, 87));
 		
 		// image preview
 		imagePreviewLabel = new JLabel();
-		imagePreviewLabel.setPreferredSize(new Dimension(200, 200));
-		imagePreviewLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+		imagePreviewLabel.setPreferredSize(new Dimension(150, 150));
+		imagePreviewLabel.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(new Color(200, 200, 200), 2, true),
+			BorderFactory.createEmptyBorder(5, 5, 5, 5)
+		));
 		imagePreviewLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		imagePreviewLabel.setBackground(new Color(248, 249, 250));
+		imagePreviewLabel.setOpaque(true);
 		
 		// upload button
-		uploadImageButton = new JButton("Upload");
+		uploadImageButton = new JButton("Upload Photo");
 		uploadImageButton.addActionListener(e -> uploadImage());
+		styleButton(uploadImageButton, new Color(0, 123, 255), Color.WHITE);
 	
 		// add panels to dialog
 		avatarPanel.add(avatarLabel);
@@ -242,7 +278,15 @@ public class EmployeeDialog extends JDialog {
 		avatarPanel.add(uploadImageButton);
 		
 		formPanel.add(avatarPanel);
-		formPanel.add(Box.createVerticalStrut(5));
+		formPanel.add(Box.createVerticalStrut(20));
+		
+		// Add section header
+		JLabel sectionHeader = new JLabel("Personal Information");
+		sectionHeader.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		sectionHeader.setForeground(new Color(52, 58, 64));
+		sectionHeader.setBorder(BorderFactory.createEmptyBorder(10, 0, 15, 0));
+		formPanel.add(sectionHeader);
+		formPanel.add(Box.createVerticalStrut(10));
 		
 		// 2025-05-31 - create combobox for position field
 		positionField = new JComboBox<>(new String[] {"Developer", "Designer", "QA", "QC"});
@@ -275,16 +319,16 @@ public class EmployeeDialog extends JDialog {
 		
 		// Add error labels
 		emailErrorLabel = new JLabel("");
-		emailErrorLabel.setForeground(Color.RED);
-		emailErrorLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		emailErrorLabel.setForeground(new Color(220, 53, 69));
+		emailErrorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
 		
 		usernameErrorLabel = new JLabel("");
-		usernameErrorLabel.setForeground(Color.RED);
-		usernameErrorLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		usernameErrorLabel.setForeground(new Color(220, 53, 69));
+		usernameErrorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
 		
 		identityNumberErrorLabel = new JLabel("");
-		identityNumberErrorLabel.setForeground(Color.RED);
-		identityNumberErrorLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+		identityNumberErrorLabel.setForeground(new Color(220, 53, 69));
+		identityNumberErrorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
 		
 		// 2025-05-31 - create combobox for type user field
 		roleField = new JComboBox<>(new String[] {"Manager", "Employee"});
@@ -351,8 +395,8 @@ public class EmployeeDialog extends JDialog {
 		experienceField = new JTextField(20);
 		addFormField(formPanel, messages.getString("salary.column.experience"), experienceField);
 		addFormField(formPanel, messages.getString("salary.column.identitynumber"), identityNumberField = new JTextField(24));
-		ThongTinLuong luong = SalaryCalculator.tinhLuong(this.employeeId, this.connection);
-		experienceField.setText(luong.tenKinhNghiem);
+		SalaryInfo salaryInfo = SalaryCalculator.calculateSalary(this.employeeId, this.connection);
+		experienceField.setText(salaryInfo.level);
 		experienceField.setEnabled(false);
 		if(sessionManager.isAdmin()) {
 			addFormField(formPanel, messages.getString("employee.dialog.username"), usernameField = new JTextField(24));
@@ -388,26 +432,27 @@ public class EmployeeDialog extends JDialog {
 		} else if(sessionManager.isEmployee()) {
 			grosssalary = new JTextField(24);
 			addFormField(formPanel, messages.getString("salary.column.grosssalary"), grosssalary);
-			grosssalary.setText(String.valueOf(luong.luongCuoiCung));
+			grosssalary.setText(String.valueOf(salaryInfo.finalSalary));
 			grosssalary.setEnabled(false);
 			emailField.setEnabled(false);
 		} else {
 			
-	        salaryField = new JTextField(24);	        
-	        salaryField.setText(String.valueOf(luong.luongCoBan));
+	        salaryField = new JTextField(24);
+	        salaryField.setText(String.valueOf(salaryInfo.basicSalary));
 	        salaryErrorLabel = new JLabel("");
-	        salaryErrorLabel.setForeground(Color.RED);
+	        salaryErrorLabel.setForeground(new Color(220, 53, 69));
+	        salaryErrorLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
 			formPanel.add(salaryErrorLabel);
 			formPanel.add(Box.createVerticalStrut(5));
 	        addFormField(formPanel, messages.getString("salary.column.salary"), salaryField);
 			addFormField(formPanel, messages.getString("salary.column.salarycoefficient"), salaryCoefficientField = new JTextField(24));
-			Double salary = SalaryCalculator.layHeSoViTri(positionField.getSelectedItem().toString());
+			Double salary = SalaryCalculator.getPositionCoefficient(positionField.getSelectedItem().toString());
 			salaryCoefficientField.setText(String.valueOf(salary));
 			salaryCoefficientField.setEnabled(false);
 
 			grosssalary = new JTextField(24);
 			addFormField(formPanel, messages.getString("salary.column.grosssalary"), grosssalary);
-			grosssalary.setText(String.valueOf(luong.luongCuoiCung));
+			grosssalary.setText(String.valueOf(salaryInfo.finalSalary));
 			grosssalary.setEnabled(false);
 			
 	        salaryField.setInputVerifier(new InputVerifier() {
@@ -443,13 +488,30 @@ public class EmployeeDialog extends JDialog {
 			field.setEnabled(false);
 		}
 		
-		JPanel fieldPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JPanel fieldPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 8));
+		fieldPanel.setOpaque(false);
+		fieldPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+		
 		JLabel labelComponent = new JLabel(label);
-		labelComponent.setPreferredSize(new Dimension(150, 25));
+		labelComponent.setPreferredSize(new Dimension(180, 30));
+		labelComponent.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		labelComponent.setForeground(new Color(73, 80, 87));
+		
+		// Style the field
+		if (field instanceof JTextField) {
+			styleTextField((JTextField) field);
+		} else if (field instanceof JComboBox) {
+			styleComboBox((JComboBox<?>) field);
+		} else if (field instanceof JPasswordField) {
+			styleTextField((JPasswordField) field);
+		} else if (field instanceof JDateChooser) {
+			styleDateChooser((JDateChooser) field);
+		}
+		
 		fieldPanel.add(labelComponent);
 		fieldPanel.add(field);
 		panel.add(fieldPanel);
-		panel.add(Box.createVerticalStrut(5));
+		panel.add(Box.createVerticalStrut(8));
 	}
 		
 	public void loadDetailEmployeeData() {
@@ -903,6 +965,45 @@ public class EmployeeDialog extends JDialog {
 		rs.close();
 		stmt.close();
 		return id;
+	}
+	
+	private void styleButton(JButton button, Color backgroundColor, Color textColor) {
+		button.setBackground(backgroundColor);
+		button.setForeground(textColor);
+		button.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+		button.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		button.setFocusPainted(false);
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+	}
+	
+	private void styleTextField(JTextField textField) {
+		textField.setPreferredSize(new Dimension(250, 35));
+		textField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		textField.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+			BorderFactory.createEmptyBorder(8, 12, 8, 12)
+		));
+	}
+	
+	private void styleTextField(JPasswordField passwordField) {
+		passwordField.setPreferredSize(new Dimension(250, 35));
+		passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		passwordField.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+			BorderFactory.createEmptyBorder(8, 12, 8, 12)
+		));
+	}
+	
+	private void styleComboBox(JComboBox<?> comboBox) {
+		comboBox.setPreferredSize(new Dimension(250, 35));
+		comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		comboBox.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
+	}
+	
+	private void styleDateChooser(JDateChooser dateChooser) {
+		dateChooser.setPreferredSize(new Dimension(250, 35));
+		dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		dateChooser.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 	}
 	
 	private void updateOtherComponents() {

@@ -5,6 +5,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
 
 import java.sql.Statement;
 
@@ -17,6 +19,10 @@ import java.sql.SQLException;
 
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.MatteBorder;
+import javax.swing.table.JTableHeader;
 
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -55,6 +61,19 @@ public class MainWindow {
 	private JLabel searchLabel;
 	private JLabel filterLabel;
 	
+	// Modern color scheme
+	private static final Color PRIMARY_COLOR = new Color(52, 152, 219);
+	private static final Color SECONDARY_COLOR = new Color(41, 128, 185);
+	private static final Color SUCCESS_COLOR = new Color(46, 204, 113);
+	private static final Color WARNING_COLOR = new Color(241, 196, 15);
+	private static final Color DANGER_COLOR = new Color(231, 76, 60);
+	private static final Color LIGHT_GRAY = new Color(245, 245, 245);
+	private static final Color MEDIUM_GRAY = new Color(189, 195, 199);
+	private static final Color DARK_GRAY = new Color(52, 73, 94);
+	private static final Color WHITE = Color.WHITE;
+	private static final Color TABLE_HEADER_BG = new Color(236, 240, 241);
+	private static final Color TABLE_ALTERNATE_ROW = new Color(248, 249, 250);
+	
 	public MainWindow() {
 		
 		System.out.println("run MainWindow");
@@ -66,17 +85,23 @@ public class MainWindow {
 		// Load user's language preference
 		loadUserLanguage();
 		
+		// Set modern look and feel
+		setupModernLookAndFeel();
+		
 		// create a frame for application 
 		window = new JFrame();
 		window.setTitle(getMessage("app.title") + " - " + getMessage("logged.in.as") + ": " + sessionManager.getUsername());
 		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		window.setSize(1000, 750);
+		window.setSize(1200, 800);
 		window.setLocationRelativeTo(null);
+		window.setBackground(WHITE);
 		
 		createMenuBar();
 		
 		// create a main panel for application
 		JPanel mainPanel = new JPanel(new BorderLayout());
+		mainPanel.setBackground(WHITE);
+		mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 		
 		String[] columns = {
 				getMessage("table.id"), 
@@ -109,80 +134,58 @@ public class MainWindow {
 			}
 		};
 		employeeTable = new JTable(tableModel);
-		employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		employeeTable.setRowHeight(50);
+		setupModernTable();
 		
 		// create tab panel
 		tabPanel = new JTabbedPane();
+		tabPanel.setBackground(WHITE);
+		tabPanel.setForeground(DARK_GRAY);
+		tabPanel.setFont(new Font("Segoe UI", Font.BOLD, 14));
 
 		System.out.println("run2");
 		//// 2025-05-31 - display if user is admin ////
-		newEmployeeButton = new JButton(getMessage("button.new.employee"));
+		newEmployeeButton = createModernButton(getMessage("button.new.employee"), SUCCESS_COLOR);
 		newEmployeeButton.setVisible(sessionManager.isAdmin());
 		newEmployeeButton.addActionListener(e -> openNewEmployeeDialog());
 
-		JPanel employeeButotnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		employeeButotnPanel.add(newEmployeeButton);
-		employeeButotnPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel employeeButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+		employeeButtonPanel.setBackground(WHITE);
+		employeeButtonPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
+		employeeButtonPanel.add(newEmployeeButton);
 		
 		// Add search panel
-		JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		searchField = new JTextField(20);
-		searchFilter = new JComboBox<>(new String[]{
-			getMessage("search.all"),
-			getMessage("search.name"),
-			getMessage("search.email"),
-			getMessage("search.position"),
-//			getMessage("search.department")
-		});
-		searchButton = new JButton(getMessage("search.button"));
-		
-		searchLabel = new JLabel(getMessage("search.label"));
-		filterLabel = new JLabel(getMessage("search.filter"));
-		
-		searchPanel.add(searchLabel);
-		searchPanel.add(searchField);
-		searchPanel.add(filterLabel);
-		searchPanel.add(searchFilter);
-		searchPanel.add(searchButton);
-		searchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-		searchButton.addActionListener(e -> searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem()));
-		searchField.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-					searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem());
-				}
-			}
-		});
+		JPanel searchPanel = createModernSearchPanel();
 		
 		JPanel topPanel = new JPanel(new BorderLayout());
-		topPanel.add(employeeButotnPanel, BorderLayout.WEST);
+		topPanel.setBackground(WHITE);
+		topPanel.setBorder(new EmptyBorder(0, 0, 20, 0));
+		topPanel.add(employeeButtonPanel, BorderLayout.WEST);
 		topPanel.add(searchPanel, BorderLayout.CENTER);
 		
 		JScrollPane scrollPanel = new JScrollPane(employeeTable);
 		scrollPanel.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createEmptyBorder(5, 5, 5, 5), 
-				BorderFactory.createLineBorder(Color.GRAY)));
+				new LineBorder(MEDIUM_GRAY, 1, true),
+				new EmptyBorder(10, 10, 10, 10)));
+		scrollPanel.getViewport().setBackground(WHITE);
 		
 		// add table to scroll pane
 		JPanel employeePanel = new JPanel(new BorderLayout());
+		employeePanel.setBackground(WHITE);
 		employeePanel.add(topPanel, BorderLayout.NORTH);
 		employeePanel.add(scrollPanel, BorderLayout.CENTER);
 		
 		taskManagementScreen = new TaskManagementScreen(connection);
 		
 		if(sessionManager.isAdmin()) {
-			tabPanel.addTab(getMessage("tab.employees"), new ImageIcon(), employeePanel, getMessage("tab.employees.tooltip"));
+			tabPanel.addTab(getMessage("tab.employees"), createTabIcon("👥"), employeePanel, getMessage("tab.employees.tooltip"));
 		}
 		
 		if(sessionManager.isManager()) {
 			caculatorSalaryScreen = new CaculatorSalaryScreen(connection);
-			tabPanel.addTab(getMessage("tab.salary"), new ImageIcon(), caculatorSalaryScreen, getMessage("tab.salary.tooltip"));
+			tabPanel.addTab(getMessage("tab.salary"), createTabIcon("💰"), caculatorSalaryScreen, getMessage("tab.salary.tooltip"));
 		}
 		
-		tabPanel.addTab(getMessage("tab.tasks"), new ImageIcon(), taskManagementScreen, getMessage("tab.tasks.tooltip"));
+		tabPanel.addTab(getMessage("tab.tasks"), createTabIcon("📋"), taskManagementScreen, getMessage("tab.tasks.tooltip"));
 		
 		mainPanel.add(tabPanel, BorderLayout.CENTER);
 		
@@ -196,6 +199,181 @@ public class MainWindow {
 		// // Update all UI text after initialization
 		updateUIText();
 		System.out.println("run4");
+	}
+	
+	private void setupModernLookAndFeel() {
+		// Set modern UI properties
+		UIManager.put("Button.arc", 8);
+		UIManager.put("Component.arc", 8);
+		UIManager.put("TextComponent.arc", 8);
+		UIManager.put("ComboBox.arc", 8);
+		UIManager.put("Table.arc", 8);
+		UIManager.put("TableHeader.arc", 8);
+	}
+	
+	private void setupModernTable() {
+		employeeTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		employeeTable.setRowHeight(60);
+		employeeTable.setShowGrid(false);
+		employeeTable.setIntercellSpacing(new Dimension(0, 0));
+		employeeTable.setBackground(WHITE);
+		employeeTable.setSelectionBackground(new Color(52, 152, 219, 30));
+		employeeTable.setSelectionForeground(DARK_GRAY);
+		employeeTable.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		
+		// Modern table header
+		JTableHeader header = employeeTable.getTableHeader();
+		header.setBackground(TABLE_HEADER_BG);
+		header.setForeground(DARK_GRAY);
+		header.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		header.setBorder(new MatteBorder(0, 0, 2, 0, MEDIUM_GRAY));
+	}
+	
+	private JPanel createModernSearchPanel() {
+		JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
+		searchPanel.setBackground(WHITE);
+		searchPanel.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(15, 15, 15, 15)
+		));
+		
+		// Search field
+		searchField = createModernTextField(20);
+		searchField.setToolTipText("Enter search term...");
+		
+		// Search filter
+		searchFilter = createModernComboBox(new String[]{
+			getMessage("search.all"),
+			getMessage("search.name"),
+			getMessage("search.email"),
+			getMessage("search.position"),
+		});
+		
+		// Search button
+		searchButton = createModernButton(getMessage("search.button"), PRIMARY_COLOR);
+		searchButton.setIcon(new ImageIcon("🔍"));
+		
+		// Labels
+		searchLabel = new JLabel(getMessage("search.label"));
+		searchLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		searchLabel.setForeground(DARK_GRAY);
+		
+		filterLabel = new JLabel(getMessage("search.filter"));
+		filterLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		filterLabel.setForeground(DARK_GRAY);
+		
+		searchPanel.add(searchLabel);
+		searchPanel.add(searchField);
+		searchPanel.add(filterLabel);
+		searchPanel.add(searchFilter);
+		searchPanel.add(searchButton);
+		
+		// Add event listeners
+		searchButton.addActionListener(e -> searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem()));
+		searchField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					searchEmployees(searchField.getText(), (String)searchFilter.getSelectedItem());
+				}
+			}
+		});
+		
+		return searchPanel;
+	}
+	
+	private JTextField createModernTextField(int columns) {
+		JTextField textField = new JTextField(columns);
+		textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		textField.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(8, 12, 8, 12)
+		));
+		textField.setBackground(WHITE);
+		textField.setForeground(DARK_GRAY);
+		
+		// Add focus listener for modern effect
+		textField.addFocusListener(new java.awt.event.FocusAdapter() {
+			@Override
+			public void focusGained(java.awt.event.FocusEvent e) {
+				textField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(PRIMARY_COLOR, 2, true),
+					new EmptyBorder(7, 11, 7, 11)
+				));
+			}
+			
+			@Override
+			public void focusLost(java.awt.event.FocusEvent e) {
+				textField.setBorder(BorderFactory.createCompoundBorder(
+					new LineBorder(MEDIUM_GRAY, 1, true),
+					new EmptyBorder(8, 12, 8, 12)
+				));
+			}
+		});
+		
+		return textField;
+	}
+	
+	private JComboBox<String> createModernComboBox(String[] items) {
+		JComboBox<String> comboBox = new JComboBox<>(items);
+		comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		comboBox.setBorder(BorderFactory.createCompoundBorder(
+			new LineBorder(MEDIUM_GRAY, 1, true),
+			new EmptyBorder(8, 12, 8, 12)
+		));
+		comboBox.setBackground(WHITE);
+		comboBox.setForeground(DARK_GRAY);
+		
+		return comboBox;
+	}
+	
+	private JButton createModernButton(String text, Color backgroundColor) {
+		JButton button = new JButton(text) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				
+				if (getModel().isPressed()) {
+					g2d.setColor(backgroundColor.darker());
+				} else if (getModel().isRollover()) {
+					g2d.setColor(backgroundColor.brighter());
+				} else {
+					g2d.setColor(backgroundColor);
+				}
+				
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+				g2d.dispose();
+				
+				super.paintComponent(g);
+			}
+		};
+		
+		button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		button.setForeground(WHITE);
+		button.setBackground(backgroundColor);
+		button.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+		button.setFocusPainted(false);
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.setOpaque(false);
+		button.setContentAreaFilled(false);
+		
+		return button;
+	}
+	
+	private ImageIcon createTabIcon(String emoji) {
+		// Create a simple icon with emoji
+		JLabel label = new JLabel(emoji);
+		label.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+		label.setPreferredSize(new Dimension(20, 20));
+		
+		// Convert to ImageIcon
+		BufferedImage image = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2d = image.createGraphics();
+		label.paint(g2d);
+		g2d.dispose();
+		
+		return new ImageIcon(image);
 	}
 	
 	private void loadEmployeeData() {
@@ -312,12 +490,22 @@ public class MainWindow {
 	//// 2025-06-01 - create menu bar ////
 	private void createMenuBar() {
 		menuBar = new JMenuBar();
+		menuBar.setBackground(TABLE_HEADER_BG);
+		menuBar.setBorder(new MatteBorder(0, 0, 1, 0, MEDIUM_GRAY));
 		
 		// profile menu
-		JMenu profileMenu = new JMenu("Profile");
-		JMenuItem accountItem = new JMenuItem("Account");
-		JMenuItem changePasswordItem = new JMenuItem("Change Password");
-		JMenuItem logoutItem = new JMenuItem("Log out");
+		JMenu profileMenu = new JMenu("👤 Profile");
+		profileMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		profileMenu.setForeground(DARK_GRAY);
+		
+		JMenuItem accountItem = new JMenuItem("👤 Account");
+		JMenuItem changePasswordItem = new JMenuItem("🔒 Change Password");
+		JMenuItem logoutItem = new JMenuItem("🚪 Log out");
+		
+		// Style menu items
+		styleMenuItem(accountItem);
+		styleMenuItem(changePasswordItem);
+		styleMenuItem(logoutItem);
 		
 		if(sessionManager.isEmployee()) {
 			accountItem.addActionListener(e -> accountDetail());
@@ -330,10 +518,17 @@ public class MainWindow {
 		profileMenu.add(logoutItem);
 		
 		// setting menu
-		JMenu settingsMenu = new JMenu("Settings");
-		JMenuItem appearanceItem = new JMenuItem("Appearance");
-		JMenuItem notificationItem = new JMenuItem("Notification");
-		JMenuItem languageItem = new JMenuItem("Language");
+		JMenu settingsMenu = new JMenu("⚙️ Settings");
+		settingsMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		settingsMenu.setForeground(DARK_GRAY);
+		
+		JMenuItem appearanceItem = new JMenuItem("🎨 Appearance");
+		JMenuItem notificationItem = new JMenuItem("🔔 Notification");
+		JMenuItem languageItem = new JMenuItem("🌐 Language");
+		
+		styleMenuItem(appearanceItem);
+		styleMenuItem(notificationItem);
+		styleMenuItem(languageItem);
 		
 		appearanceItem.addActionListener(e -> openAppearanceSettings());
 		notificationItem.addActionListener(e -> openNotificationSettings());
@@ -344,10 +539,17 @@ public class MainWindow {
 		settingsMenu.add(languageItem);
 
 		// help menu
-		JMenu helpMenu = new JMenu("Help");
-		JMenuItem aboutItem = new JMenuItem("About");
-		JMenuItem contactItem = new JMenuItem("Contact Support");
-		JMenuItem helpItem = new JMenuItem("Help Contents");
+		JMenu helpMenu = new JMenu("❓ Help");
+		helpMenu.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		helpMenu.setForeground(DARK_GRAY);
+		
+		JMenuItem aboutItem = new JMenuItem("ℹ️ About");
+		JMenuItem contactItem = new JMenuItem("📞 Contact Support");
+		JMenuItem helpItem = new JMenuItem("📖 Help Contents");
+		
+		styleMenuItem(aboutItem);
+		styleMenuItem(contactItem);
+		styleMenuItem(helpItem);
 		
 		aboutItem.addActionListener(e -> showAboutDialog());
 		contactItem.addActionListener(e -> showContactSupports());
@@ -364,6 +566,13 @@ public class MainWindow {
 		// set the menu bar
 		window.setJMenuBar(menuBar);
 		
+	}
+	
+	private void styleMenuItem(JMenuItem menuItem) {
+		menuItem.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		menuItem.setForeground(DARK_GRAY);
+		menuItem.setBackground(WHITE);
+		menuItem.setBorder(new EmptyBorder(5, 10, 5, 10));
 	}
 	
 	private int loadEmployeeId(int user_id) {
@@ -711,22 +920,20 @@ public class MainWindow {
 		};
 		
 		tableModel.setColumnIdentifiers(columns);
-		// Update column headers
-//		for (int i = 0; i < columns.length; i++) {
-//			tableModel.setColumnIdentifiers(columns);
-//		}
 		
 		//// 2025-05-29 - customize center the photo column ////
-		employeeTable.getColumnModel().getColumn(1).setPreferredWidth(50);
+		employeeTable.getColumnModel().getColumn(1).setPreferredWidth(60);
 		employeeTable.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
 			@Override
 			public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 				JLabel label = new JLabel();
 				label.setHorizontalAlignment(JLabel.CENTER);
 				label.setOpaque(true);
+				label.setBorder(new EmptyBorder(5, 5, 5, 5));
+				
 				if(value instanceof ImageIcon) {
 					ImageIcon icon = (ImageIcon) value;
-					Image img = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+					Image img = icon.getImage().getScaledInstance(45, 45, Image.SCALE_SMOOTH);
 					label.setIcon(new ImageIcon(img));
 				}
 				
@@ -734,7 +941,7 @@ public class MainWindow {
 					label.setBackground(table.getSelectionBackground());
 					label.setForeground(table.getSelectionForeground());
 				}else {
-					label.setBackground(table.getBackground());
+					label.setBackground(row % 2 == 0 ? WHITE : TABLE_ALTERNATE_ROW);
 					label.setForeground(table.getForeground());
 				}
 				
@@ -750,19 +957,14 @@ public class MainWindow {
 					JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 					panel.setOpaque(true);		
 					
-					JButton deleteButton = new JButton(getMessage("table.actions.button.delete"));
-					deleteButton.setFocusPainted(false);
-					deleteButton.setBorderPainted(true);
-					deleteButton.setContentAreaFilled(true);
-					deleteButton.setForeground(Color.RED);
-					deleteButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-					deleteButton.setHorizontalAlignment(SwingConstants.CENTER);
+					JButton deleteButton = createModernButton(getMessage("table.actions.button.delete"), DANGER_COLOR);
+					deleteButton.setPreferredSize(new Dimension(80, 30));
 					panel.add(deleteButton);
 					
 					if(isSelected) {
 						panel.setBackground(table.getSelectionBackground());
 					}else {
-						panel.setBackground(table.getBackground());
+						panel.setBackground(row % 2 == 0 ? WHITE : TABLE_ALTERNATE_ROW);
 					}
 					
 					return panel;
@@ -789,9 +991,14 @@ public class MainWindow {
 				if (row < employeeTable.getRowCount() && row >= 0 && column < employeeTable.getColumnCount() && column >= 0) {
 					if(column == 8 && sessionManager.isAdmin()) {
 						int confirm = JOptionPane.showConfirmDialog(window, 
-							getMessage("msg.delete.confirm"),
-							getMessage("msg.delete.title"),
-							JOptionPane.YES_NO_OPTION);
+							"<html><div style='text-align: center;'>" +
+							"<p style='font-size: 16px; color: #e74c3c;'>⚠️ Delete Employee</p>" +
+							"<p style='font-size: 14px; color: #555;'>Are you sure you want to delete this employee?</p>" +
+							"<p style='font-size: 12px; color: #777;'>This action cannot be undone.</p>" +
+							"</div></html>",
+							"Confirm Delete",
+							JOptionPane.YES_NO_OPTION,
+							JOptionPane.WARNING_MESSAGE);
 						if(confirm == JOptionPane.YES_OPTION) {
 							deleteEmployee(row);
 						}	
@@ -881,7 +1088,7 @@ public class MainWindow {
 	}
 	
 	private void initDatabase() {
-		connection = sqliteConnection.dbConnector();
+		connection = SqlServerConnection.dbConnector();
 	}
 	
 	private void searchEmployees(String searchText, String filter) {
