@@ -13,7 +13,7 @@ public class SalaryCalculator {
     private static final double THUONG_MANAGER_POSITION = 500.0; // Thưởng cho position Manager
     
 
-//Hàm lấy hệ số theo vị trí công việc
+    //Hàm lấy hệ số theo vị trí công việc
     public static double layHeSoViTri(String viTri) {
         if (viTri.equals("Developer")) {
             return 1.5;
@@ -31,7 +31,7 @@ public class SalaryCalculator {
     }
     
 
-//Hàm lấy hệ số kinh nghiệm
+    //Hàm lấy hệ số kinh nghiệm
     private static double layHeSoKinhNghiem(int soNamKinhNghiem) {
         if (soNamKinhNghiem >= 8) {
             return 1.8;//Leader
@@ -45,7 +45,7 @@ public class SalaryCalculator {
     }
 
 
-//Hàm lấy tên level kinh nghiệm
+    //Hàm lấy tên level kinh nghiệm
     private static String layTenKinhNghiem(int soNamKinhNghiem) {
         if (soNamKinhNghiem >= 8) {
             return "Leader";
@@ -59,7 +59,7 @@ public class SalaryCalculator {
     }
     
 
-//Hàm tính số năm làm việc từ ngày vào công ty
+    //Hàm tính số năm làm việc từ ngày vào công ty
     private static int tinhSoNamLamViec(String ngayVaoLam) {
         if (ngayVaoLam == null || ngayVaoLam.trim().isEmpty()) {
             return 0;

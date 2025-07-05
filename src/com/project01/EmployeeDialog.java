@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import com.toedter.calendar.JDateChooser;
 import java.util.Locale;
 import java.util.ResourceBundle;
+
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
@@ -56,6 +57,7 @@ public class EmployeeDialog extends JDialog {
 	private JLabel emailErrorLabel;
 	private JLabel usernameErrorLabel;
 	private JLabel identityNumberErrorLabel;
+	private JLabel salaryErrorLabel;
 	private ResourceBundle messages;
 	private static final String DEFAULT_LANGUAGE = "English";
 	private String currentLanguage = DEFAULT_LANGUAGE;
@@ -75,7 +77,6 @@ public class EmployeeDialog extends JDialog {
 	private JTextField salaryField;
 	private JTextField salaryCoefficientField;
 	private JTextField grosssalary;
-	private JTextField experienField;
 	private JTextComponent experienceField;
 	
 	public EmployeeDialog(JFrame parent, Connection conn) {
@@ -253,7 +254,7 @@ public class EmployeeDialog extends JDialog {
 		hireDateField.setDateFormatString("yyyy-MM-dd");
 		
 		// 2025-05-31 - create email format for email field
-		emailField = new JTextField(20);
+		emailField = new JTextField(24);
 		emailField.setInputVerifier(new InputVerifier() {
 			@Override
 			public boolean verify(JComponent input) {
@@ -290,12 +291,12 @@ public class EmployeeDialog extends JDialog {
 		roleField.setPreferredSize(new Dimension(200, roleField.getPreferredSize().height));
 		
 		// add form field
-		addFormField(formPanel, messages.getString("employee.dialog.firstname"), firstNameField = new JTextField(20));
-		addFormField(formPanel, messages.getString("employee.dialog.lastname"), lastNameField = new JTextField(20));
+		addFormField(formPanel, messages.getString("employee.dialog.firstname"), firstNameField = new JTextField(24));
+		addFormField(formPanel, messages.getString("employee.dialog.lastname"), lastNameField = new JTextField(24));
 		addFormField(formPanel, messages.getString("employee.dialog.email"), emailField);
 		formPanel.add(emailErrorLabel);
 		formPanel.add(Box.createVerticalStrut(5));
-		addFormField(formPanel, messages.getString("employee.dialog.phone"), phoneField = new JTextField(20));
+		addFormField(formPanel, messages.getString("employee.dialog.phone"), phoneField = new JTextField(24));
 		addFormField(formPanel, messages.getString("employee.dialog.position"), positionField);
 		addFormField(formPanel, messages.getString("employee.dialog.hiredate"), hireDateField);
 		
@@ -349,15 +350,15 @@ public class EmployeeDialog extends JDialog {
 		
 		experienceField = new JTextField(20);
 		addFormField(formPanel, messages.getString("salary.column.experience"), experienceField);
-		addFormField(formPanel, messages.getString("salary.column.identitynumber"), identityNumberField = new JTextField(20));
+		addFormField(formPanel, messages.getString("salary.column.identitynumber"), identityNumberField = new JTextField(24));
 		ThongTinLuong luong = SalaryCalculator.tinhLuong(this.employeeId, this.connection);
 		experienceField.setText(luong.tenKinhNghiem);
 		experienceField.setEnabled(false);
 		if(sessionManager.isAdmin()) {
-			addFormField(formPanel, messages.getString("employee.dialog.username"), usernameField = new JTextField(20));
+			addFormField(formPanel, messages.getString("employee.dialog.username"), usernameField = new JTextField(24));
 			formPanel.add(usernameErrorLabel);
 			formPanel.add(Box.createVerticalStrut(5));
-			addFormField(formPanel, messages.getString("employee.dialog.password"), passwordField = new JPasswordField(20));
+			addFormField(formPanel, messages.getString("employee.dialog.password"), passwordField = new JPasswordField(24));
 			addFormField(formPanel, messages.getString("employee.dialog.level"), roleField);
 			
 			//// 2025-06-21 - add listener if role is Employee ////
@@ -385,22 +386,26 @@ public class EmployeeDialog extends JDialog {
 			manageField.setEnabled(false);
 			
 		} else if(sessionManager.isEmployee()) {
-			grosssalary = new JTextField(20);
+			grosssalary = new JTextField(24);
 			addFormField(formPanel, messages.getString("salary.column.grosssalary"), grosssalary);
 			grosssalary.setText(String.valueOf(luong.luongCuoiCung));
 			grosssalary.setEnabled(false);
 			emailField.setEnabled(false);
 		} else {
 			
-	        salaryField = new JTextField(20);	        
+	        salaryField = new JTextField(24);	        
 	        salaryField.setText(String.valueOf(luong.luongCoBan));
+	        salaryErrorLabel = new JLabel("");
+	        salaryErrorLabel.setForeground(Color.RED);
+			formPanel.add(salaryErrorLabel);
+			formPanel.add(Box.createVerticalStrut(5));
 	        addFormField(formPanel, messages.getString("salary.column.salary"), salaryField);
-			addFormField(formPanel, messages.getString("salary.column.salarycoefficient"), salaryCoefficientField = new JTextField(20));
+			addFormField(formPanel, messages.getString("salary.column.salarycoefficient"), salaryCoefficientField = new JTextField(24));
 			Double salary = SalaryCalculator.layHeSoViTri(positionField.getSelectedItem().toString());
 			salaryCoefficientField.setText(String.valueOf(salary));
 			salaryCoefficientField.setEnabled(false);
 
-			grosssalary = new JTextField(20);
+			grosssalary = new JTextField(24);
 			addFormField(formPanel, messages.getString("salary.column.grosssalary"), grosssalary);
 			grosssalary.setText(String.valueOf(luong.luongCuoiCung));
 			grosssalary.setEnabled(false);
@@ -417,7 +422,7 @@ public class EmployeeDialog extends JDialog {
 	                    grosssalary.setText(String.valueOf(salary_amount));
 	                    return true;
 	                } catch (NumberFormatException ex) {
-	                	emailErrorLabel.setText("Result1: Invalid input!");
+	                	salaryErrorLabel.setText("Invalid input, please input number");
 	                    return false;
 	                }
 				}
@@ -712,7 +717,7 @@ public class EmployeeDialog extends JDialog {
 				} else if(sessionManager.isAdmin()) {
 					
 					// update employee
-					query = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, phone = ?, position = ?, hire_date = ?, photo = ?, manager_id = ? " +
+					query = "UPDATE employees SET first_name = ?, last_name = ?, email = ?, phone = ?, position = ?, hire_date = ?, photo = ?, manager_id = ?, identity_number = ? " +
 									"WHERE id = ?";
 					pstmt = connection.prepareStatement(query);
 
@@ -731,7 +736,8 @@ public class EmployeeDialog extends JDialog {
 					pstmt.setString(6, hireDateStr);
 					pstmt.setBytes(7, avatarImage);
 					pstmt.setInt(8, getManagerId((String) manageField.getSelectedItem().toString()));
-					pstmt.setInt(9, employeeId);
+					pstmt.setString(9, identityNumberField.getText());
+					pstmt.setInt(10, employeeId);
 					pstmt.executeUpdate();
 					pstmt.close();
 					
@@ -877,7 +883,7 @@ public class EmployeeDialog extends JDialog {
 				manageField.addItem(name);
 			}
 		} catch (SQLException e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 	}
 	

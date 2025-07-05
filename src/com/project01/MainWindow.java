@@ -70,7 +70,7 @@ public class MainWindow {
 		window = new JFrame();
 		window.setTitle(getMessage("app.title") + " - " + getMessage("logged.in.as") + ": " + sessionManager.getUsername());
 		window.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		window.setSize(1000, 600);
+		window.setSize(1000, 750);
 		window.setLocationRelativeTo(null);
 		
 		createMenuBar();
@@ -177,8 +177,8 @@ public class MainWindow {
 			tabPanel.addTab(getMessage("tab.employees"), new ImageIcon(), employeePanel, getMessage("tab.employees.tooltip"));
 		}
 		
-		caculatorSalaryScreen = new CaculatorSalaryScreen(connection);
 		if(sessionManager.isManager()) {
+			caculatorSalaryScreen = new CaculatorSalaryScreen(connection);
 			tabPanel.addTab(getMessage("tab.salary"), new ImageIcon(), caculatorSalaryScreen, getMessage("tab.salary.tooltip"));
 		}
 		
@@ -305,6 +305,7 @@ public class MainWindow {
 			
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(window, "Error delete employee data: " + e.getMessage());
+			System.out.println("Error delete employee data: " + e.getMessage());
 		}
 	}
 	
@@ -396,6 +397,7 @@ public class MainWindow {
 			}	
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(window, "Error loading profile: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	

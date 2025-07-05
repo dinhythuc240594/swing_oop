@@ -6,7 +6,7 @@ import java.awt.Image;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-//import java.net.URL;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
