@@ -66,6 +66,8 @@ Change absolute path to relative path for database avoid error missing database 
 - Edit UI for application
 <ul>
 <li>Change database system from sqlite3 to sqlserver</li>
+<li>Set flag to know using sqlite3 or sqlserver</li>
+<li>Set icon base on HandlerImage class</li>
 </ul>
 
 
