@@ -8,6 +8,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Objects;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -49,7 +50,7 @@ public class LoginWindow {
 		loginWindow.setTitle("Employee Management System - Login");
 		loginWindow.setBackground(WHITE);
 		loginWindow.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		loginWindow.setBounds(100, 100, 800, 500);
+		loginWindow.setBounds(100, 100, 800, 650);
 		loginWindow.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		loginWindow.setResizable(false);
 		loginWindow.getContentPane().setLayout(null);
@@ -73,7 +74,7 @@ public class LoginWindow {
 			}
 		};
 		mainPanel.setLayout(null);
-		mainPanel.setBounds(0, 0, 800, 500);
+		mainPanel.setBounds(0, 0, 800, 650);
 		loginWindow.getContentPane().add(mainPanel);
 		
 		// Create login card panel
@@ -113,7 +114,8 @@ public class LoginWindow {
 		loginCard.add(subtitleLabel);
 		
 		// Username
-		JLabel lblUserName = new JLabel("👤 Username");
+        JLabel lblUserName = new JLabel("Username");
+        lblUserName.setIcon(createIcon("img/user.png", 22, 22));
 		lblUserName.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lblUserName.setForeground(DARK_GRAY);		
 		lblUserName.setBounds(25, 100, 350, 25);
@@ -124,7 +126,8 @@ public class LoginWindow {
 		loginCard.add(usernameField);
 		
 		// Password
-		JLabel lblPassword = new JLabel("🔒 Password");
+		JLabel lblPassword = new JLabel("Password");
+		lblPassword.setIcon(createIcon("img/password.png", 22, 22));
 		lblPassword.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lblPassword.setForeground(DARK_GRAY);
 		lblPassword.setBounds(25, 175, 350, 25);
@@ -143,7 +146,8 @@ public class LoginWindow {
 		loginCard.add(errorLabel);
 		
 		// Login button
-		JButton btnLogin = createModernButton("🚀 Sign In", SUCCESS_COLOR);
+		JButton btnLogin = createModernButton("Sign In", SUCCESS_COLOR);
+		btnLogin.setIcon(createIcon("img/log.png", 22, 22));
 		btnLogin.setBounds(25, 280, 350, 45);
 		btnLogin.setFont(new Font("Segoe UI", Font.BOLD, 16));
 		loginCard.add(btnLogin);
@@ -165,6 +169,13 @@ public class LoginWindow {
 		
 		// Add decorative elements
 		addDecorativeElements(mainPanel);
+	}
+	
+	private ImageIcon createIcon(String pathImage, int width, int height) {
+		HandlerImage hImage = new HandlerImage();
+		byte[] bytePhoto = hImage.fileImage(pathImage, width, height);
+		ImageIcon icon = new ImageIcon(bytePhoto);
+		return icon;
 	}
 	
 	private JTextField createModernTextField(int columns) {

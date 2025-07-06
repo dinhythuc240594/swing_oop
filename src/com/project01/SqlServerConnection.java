@@ -9,7 +9,7 @@ public class SqlServerConnection {
 	public static Connection dbConnector() {
 		try {
 			Connection conn = null;
-				boolean isOptionDB = true;
+				boolean isOptionDB = false;
 				if(isOptionDB) {
 					Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 					String connectionUrl = "jdbc:sqlserver://localhost:1433;"

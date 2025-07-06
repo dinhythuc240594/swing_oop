@@ -1,18 +1,22 @@
 package com.project01;
 
+import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 public class HandlerImage {
-
+	
 	public byte[] exportImage(JLabel labelImage, File selectedFile) {
 		// read and resize image
 		BufferedImage originalImage;
@@ -40,6 +44,7 @@ public class HandlerImage {
 	public BufferedImage resizeImage(BufferedImage origImage, int width, int height) {
 		BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D graphics2D = resizedImage.createGraphics();
+		
 		graphics2D.drawImage(origImage, 0, 0, width, height, null);
 		graphics2D.dispose();
 		return resizedImage;
@@ -55,6 +60,7 @@ public class HandlerImage {
 				// read and resize image
 				BufferedImage originalImage = ImageIO.read(file);
 				BufferedImage resizedImage = resizeImage(originalImage, width, height);
+				
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				ImageIO.write(resizedImage, "PNG", baos);
 				byte[] avatarImage = baos.toByteArray();

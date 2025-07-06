@@ -924,6 +924,7 @@ public class MainWindow {
 		tableModel.setColumnIdentifiers(columns);
 		
 		//// 2025-05-29 - customize center the photo column ////
+		employeeTable.getColumnModel().getColumn(0).setPreferredWidth(10);
 		employeeTable.getColumnModel().getColumn(1).setPreferredWidth(60);
 		employeeTable.getColumnModel().getColumn(1).setCellRenderer(new DefaultTableCellRenderer() {
 			@Override

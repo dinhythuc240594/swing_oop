@@ -359,9 +359,9 @@ public class EmployeeDialog extends JDialog {
 		
 		addFormField(formPanel, "Department", departmentField);
 		
-		addFormField(formPanel, "ID", identityNumber = new JTextField(20));
-		addFormField(formPanel, "Address", addressField = new JTextField(20));
-		addFormField(formPanel, "Postal Code", postalCodeField = new JTextField(20));
+		addFormField(formPanel, "ID", identityNumber = new JTextField(24));
+		addFormField(formPanel, "Address", addressField = new JTextField(24));
+		addFormField(formPanel, "Postal Code", postalCodeField = new JTextField(24));
 		
 		cityField = new JComboBox<>(new String[] {"Technology", "Human Resource", "Accounting"});
 		cityField.setPreferredSize(new Dimension(200, cityField.getPreferredSize().height));
@@ -379,9 +379,9 @@ public class EmployeeDialog extends JDialog {
 		maritalStatusField.setPreferredSize(new Dimension(200, departmentField.getPreferredSize().height));
 		
 		addFormField(formPanel, "Marital Status", maritalStatusField);
-		addFormField(formPanel, "Spouse Name", spouseNameField = new JTextField(20));
+		addFormField(formPanel, "Spouse Name", spouseNameField = new JTextField(24));
 		
-		JTextField textNumber = new JTextField(10);
+		JTextField textNumber = new JTextField(24);
 		textNumber.setInputVerifier(new InputVerifier() {
 	        @Override
 	        public boolean verify(JComponent input) {
@@ -398,10 +398,10 @@ public class EmployeeDialog extends JDialog {
 	    });
 
 		addFormField(formPanel, "Number of children", textNumber);
-		addFormField(formPanel, "Emergency Contact Name", emergencyContactNameField = new JTextField(20));
-		addFormField(formPanel, "Emergency Contact Phone", emergencyContactPhoneField = new JTextField(20));
+		addFormField(formPanel, "Emergency Contact Name", emergencyContactNameField = new JTextField(24));
+		addFormField(formPanel, "Emergency Contact Phone", emergencyContactPhoneField = new JTextField(24));
 		
-		experienceField = new JTextField(20);
+		experienceField = new JTextField(24);
 		addFormField(formPanel, messages.getString("salary.column.experience"), experienceField);
 		addFormField(formPanel, messages.getString("salary.column.identitynumber"), identityNumberField = new JTextField(24));
 		SalaryInfo salaryInfo = SalaryCalculator.calculateSalary(this.employeeId, this.connection);
@@ -1004,13 +1004,13 @@ public class EmployeeDialog extends JDialog {
 	}
 	
 	private void styleComboBox(JComboBox<?> comboBox) {
-		comboBox.setPreferredSize(new Dimension(250, 35));
+		comboBox.setPreferredSize(new Dimension(265, 35));
 		comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		comboBox.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 	}
 	
 	private void styleDateChooser(JDateChooser dateChooser) {
-		dateChooser.setPreferredSize(new Dimension(250, 35));
+		dateChooser.setPreferredSize(new Dimension(265, 35));
 		dateChooser.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		dateChooser.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 	}
