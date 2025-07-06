@@ -115,7 +115,7 @@ public class LoginWindow {
 		// Username
 		JLabel lblUserName = new JLabel("👤 Username");
 		lblUserName.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lblUserName.setForeground(DARK_GRAY);
+		lblUserName.setForeground(DARK_GRAY);		
 		lblUserName.setBounds(25, 100, 350, 25);
 		loginCard.add(lblUserName);
 		

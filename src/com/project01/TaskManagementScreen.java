@@ -200,6 +200,8 @@ public class TaskManagementScreen extends JPanel {
 		deleteButton.setVisible(isAdmin || isManager);
 		updateButton.setVisible(isEmployee);
 		loadEmployeeButton.setVisible(isAdmin || isManager);
+		assignedByTask.setVisible(isEmployee);
+		assingnedByCombobox.setVisible(isEmployee);
 		
 		// Load initial data
 		loadEmployees();
@@ -234,6 +236,7 @@ public class TaskManagementScreen extends JPanel {
 		// Search button
 		searchButton = createModernButton(messages.getString("search.task.button"), PRIMARY_COLOR);
 		searchButton.setIcon(new ImageIcon("🔍"));
+		searchButton.setSize(200, 60);
 		
 		// Labels
 		searchLabel = new JLabel(messages.getString("search.task.label"));
@@ -370,19 +373,33 @@ public class TaskManagementScreen extends JPanel {
 		addFormField(formPanel, descriptionTask, new JScrollPane(descriptionField));
 		
 		// Assigned to/by
-		if(sessionManager.isEmployee()) {
-			assignedByTask = new JLabel(messages.getString("task.form.assigned_by"));
-			assignedByTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
-			assignedByTask.setForeground(DARK_GRAY);
-			assingnedByCombobox = createModernComboBox(new String[]{});
-			addFormField(formPanel, assignedByTask, assingnedByCombobox);
-		} else {
-			assignedToTask = new JLabel(messages.getString("task.form.assigned_to"));
-			assignedToTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
-			assignedToTask.setForeground(DARK_GRAY);
-			employeeCombobox = createModernComboBox(new String[]{});
-			addFormField(formPanel, assignedToTask, employeeCombobox);
-		}
+//		if(sessionManager.isEmployee()) {
+//			assignedByTask = new JLabel(messages.getString("task.form.assigned_by"));
+//			assignedByTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+//			assignedByTask.setForeground(DARK_GRAY);
+//			assingnedByCombobox = createModernComboBox(new String[]{});
+//			addFormField(formPanel, assignedByTask, assingnedByCombobox);
+//		} else {
+//			assignedToTask = new JLabel(messages.getString("task.form.assigned_to"));
+//			assignedToTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+//			assignedToTask.setForeground(DARK_GRAY);
+//			employeeCombobox = createModernComboBox(new String[]{});
+//			addFormField(formPanel, assignedToTask, employeeCombobox);
+//		}
+		
+		
+		//// 2025-07-06 - fix setVisible for field assigned by
+		assignedByTask = new JLabel(messages.getString("task.form.assigned_by"));
+		assignedByTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		assignedByTask.setForeground(DARK_GRAY);
+		assingnedByCombobox = createModernComboBox(new String[]{});
+		addFormField(formPanel, assignedByTask, assingnedByCombobox);
+		
+		assignedToTask = new JLabel(messages.getString("task.form.assigned_to"));
+		assignedToTask.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		assignedToTask.setForeground(DARK_GRAY);
+		employeeCombobox = createModernComboBox(new String[]{});
+		addFormField(formPanel, assignedToTask, employeeCombobox);
 		
 		// Priority
 		priorityTask = new JLabel(messages.getString("task.form.priority"));

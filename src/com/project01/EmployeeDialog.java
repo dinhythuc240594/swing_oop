@@ -16,7 +16,6 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
-import javax.swing.UIManager;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -80,6 +79,16 @@ public class EmployeeDialog extends JDialog {
 	private JTextField grosssalary;
 	private JTextComponent experienceField;
 	
+	// Modern color scheme
+	private static final Color PRIMARY_COLOR = new Color(52, 152, 219);
+	private static final Color SECONDARY_COLOR = new Color(41, 128, 185);
+	private static final Color SUCCESS_COLOR = new Color(46, 204, 113);
+	private static final Color DANGER_COLOR = new Color(231, 76, 60);
+	private static final Color LIGHT_GRAY = new Color(245, 245, 245);
+	private static final Color MEDIUM_GRAY = new Color(189, 195, 199);
+	private static final Color DARK_GRAY = new Color(52, 73, 94);
+	private static final Color WHITE = Color.WHITE;
+	
 	public EmployeeDialog(JFrame parent, Connection conn) {
 		this(parent, conn, -1);
 		this.messages = ResourceBundle.getBundle("messages", Locale.of("en"));
@@ -141,12 +150,12 @@ public class EmployeeDialog extends JDialog {
 		buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
 		buttonPanel.setBackground(new Color(248, 249, 250));
 		
-		saveButton = new JButton("Save");
+		saveButton = createModernButton("Save", PRIMARY_COLOR, 80, 30);
 		saveButton.addActionListener(e -> saveEmployee());
 		saveButton.setVisible(sessionManager.isAdmin());
 		styleButton(saveButton, new Color(40, 167, 69), Color.WHITE);
 		
-		cancelButton = new JButton("Cancel");
+		cancelButton = createModernButton("Cancel", PRIMARY_COLOR, 80, 30);
 		cancelButton.addActionListener(e -> dispose());
 		styleButton(cancelButton, new Color(108, 117, 125), Color.WHITE);
 		
@@ -1012,6 +1021,41 @@ public class EmployeeDialog extends JDialog {
 		saveButton.setText(messages.getString("employee.dialog.save"));
 		uploadImageButton.setText(messages.getString("employee.dialog.upload"));
 		cancelButton.setText(messages.getString("employee.dialog.cancel"));
+	}
+	
+	private JButton createModernButton(String text, Color backgroundColor, int Width, int Height) {
+		JButton button = new JButton(text) {
+			@Override
+			protected void paintComponent(Graphics g) {
+				Graphics2D g2d = (Graphics2D) g.create();
+				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				
+				if (getModel().isPressed()) {
+					g2d.setColor(backgroundColor.darker());
+				} else if (getModel().isRollover()) {
+					g2d.setColor(backgroundColor.brighter());
+				} else {
+					g2d.setColor(backgroundColor);
+				}
+				
+				g2d.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+				g2d.dispose();
+				
+				super.paintComponent(g);
+			}
+		};
+		
+		button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		button.setForeground(WHITE);
+		button.setBackground(backgroundColor);
+		button.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
+		button.setFocusPainted(false);
+		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		button.setOpaque(false);
+		button.setContentAreaFilled(false);
+		button.setPreferredSize(new Dimension(Width, Height));
+		
+		return button;
 	}
 	
 }

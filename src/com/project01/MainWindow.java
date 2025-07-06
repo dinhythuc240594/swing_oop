@@ -144,13 +144,13 @@ public class MainWindow {
 
 		System.out.println("run2");
 		//// 2025-05-31 - display if user is admin ////
-		newEmployeeButton = createModernButton(getMessage("button.new.employee"), SUCCESS_COLOR);
+		newEmployeeButton = createModernButton(getMessage("button.new.employee"), PRIMARY_COLOR, 150, 30);
 		newEmployeeButton.setVisible(sessionManager.isAdmin());
 		newEmployeeButton.addActionListener(e -> openNewEmployeeDialog());
 
 		JPanel employeeButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
 		employeeButtonPanel.setBackground(WHITE);
-		employeeButtonPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
+		employeeButtonPanel.setBorder(new EmptyBorder(15, 0, 10, 0));
 		employeeButtonPanel.add(newEmployeeButton);
 		
 		// Add search panel
@@ -232,10 +232,11 @@ public class MainWindow {
 	private JPanel createModernSearchPanel() {
 		JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 10));
 		searchPanel.setBackground(WHITE);
-		searchPanel.setBorder(BorderFactory.createCompoundBorder(
-			new LineBorder(MEDIUM_GRAY, 1, true),
-			new EmptyBorder(15, 15, 15, 15)
-		));
+//		searchPanel.setBorder(BorderFactory.createCompoundBorder(
+//			new LineBorder(MEDIUM_GRAY, 1, true),
+//			new EmptyBorder(15, 15, 15, 15)
+//		));
+		searchPanel.setBorder(new EmptyBorder(10, 0, 10, 0));
 		
 		// Search field
 		searchField = createModernTextField(20);
@@ -250,7 +251,7 @@ public class MainWindow {
 		});
 		
 		// Search button
-		searchButton = createModernButton(getMessage("search.button"), PRIMARY_COLOR);
+		searchButton = createModernButton(getMessage("search.button"), PRIMARY_COLOR, 100, 30);
 		searchButton.setIcon(new ImageIcon("🔍"));
 		
 		// Labels
@@ -327,7 +328,7 @@ public class MainWindow {
 		return comboBox;
 	}
 	
-	private JButton createModernButton(String text, Color backgroundColor) {
+	private JButton createModernButton(String text, Color backgroundColor, int Width, int Height) {
 		JButton button = new JButton(text) {
 			@Override
 			protected void paintComponent(Graphics g) {
@@ -357,6 +358,7 @@ public class MainWindow {
 		button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 		button.setOpaque(false);
 		button.setContentAreaFilled(false);
+		button.setPreferredSize(new Dimension(Width, Height));
 		
 		return button;
 	}
@@ -957,7 +959,7 @@ public class MainWindow {
 					JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 					panel.setOpaque(true);		
 					
-					JButton deleteButton = createModernButton(getMessage("table.actions.button.delete"), DANGER_COLOR);
+					JButton deleteButton = createModernButton(getMessage("table.actions.button.delete"), DANGER_COLOR, 100, 40);
 					deleteButton.setPreferredSize(new Dimension(80, 30));
 					panel.add(deleteButton);
 					
